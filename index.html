@@ -15,30 +15,29 @@
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
-    [x-cloak] { display: none !important; }
-    * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
-    html, body { height: 100%; margin: 0; }
-    body { background: #0f172a; color: #f1f5f9; font-family: system-ui, -apple-system, sans-serif; overscroll-behavior: none; }
-    input[type="number"] { -moz-appearance: textfield; }
+    [x-cloak]{display:none!important}
+    *{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+    html,body{height:100%;margin:0}
+    body{background:#0f172a;color:#f1f5f9;font-family:system-ui,-apple-system,sans-serif;overscroll-behavior:none}
+    input[type="number"]{-moz-appearance:textfield}
     input[type="number"]::-webkit-outer-spin-button,
-    input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
-    @keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:.4} }
-    .pulse-dot { animation: pulse-dot 1.5s ease-in-out infinite; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .spin { animation: spin 0.8s linear infinite; }
-    select option { background: #1e293b; }
+    input[type="number"]::-webkit-inner-spin-button{-webkit-appearance:none}
+    @keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:.4}}
+    .pulse-dot{animation:pulse-dot 1.5s ease-in-out infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .spin{animation:spin .8s linear infinite}
+    select option{background:#1e293b}
   </style>
 </head>
-
 <body x-data="gymApp()" x-init="init()">
 
 <!-- ══ TOAST ══════════════════════════════════════════════ -->
 <div x-show="toast.show" x-cloak
-  class="fixed top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-2xl text-sm font-medium shadow-xl transition-all"
-  :class="toast.error ? 'bg-red-600 text-white' : 'bg-emerald-600 text-white'"
+  class="fixed top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-2xl text-sm font-medium shadow-xl"
+  :class="toast.error?'bg-red-600 text-white':'bg-emerald-600 text-white'"
   x-text="toast.msg"></div>
 
-<!-- ══ LOADING OVERLAY ════════════════════════════════════ -->
+<!-- ══ LOADING ════════════════════════════════════════════ -->
 <div x-show="loading" x-cloak class="fixed inset-0 bg-slate-900/80 z-50 flex items-center justify-center">
   <div class="flex flex-col items-center gap-3">
     <svg class="w-8 h-8 text-blue-400 spin" fill="none" viewBox="0 0 24 24">
@@ -51,461 +50,369 @@
 
 <main class="pb-20 min-h-screen">
 
-  <!-- ══════════════════════════════════════════
-       ACCUEIL
-  ══════════════════════════════════════════ -->
-  <div x-show="tab === 'accueil'" x-cloak>
+<!-- ══════════════════════════════════════════════════════
+     ACCUEIL
+══════════════════════════════════════════════════════ -->
+<div x-show="tab==='accueil'" x-cloak>
+  <div class="px-4 pt-10 pb-4 flex items-center justify-between">
+    <div><h1 class="text-2xl font-bold text-white">💪 GymTracker</h1>
+    <p class="text-slate-400 text-sm mt-0.5">Suivi de tes séances</p></div>
+    <div class="text-right text-xs text-slate-500 max-w-[130px]" x-text="todayStr"></div>
+  </div>
+  <div class="grid grid-cols-3 gap-3 px-4 mb-6">
+    <div class="bg-slate-800 rounded-2xl p-4 text-center"><div class="text-2xl font-bold text-blue-400" x-text="stats.total"></div><div class="text-xs text-slate-400 mt-1">Total</div></div>
+    <div class="bg-slate-800 rounded-2xl p-4 text-center"><div class="text-2xl font-bold text-violet-400" x-text="stats.thisWeek"></div><div class="text-xs text-slate-400 mt-1">Cette semaine</div></div>
+    <div class="bg-slate-800 rounded-2xl p-4 text-center"><div class="text-2xl font-bold text-orange-400" x-text="stats.streak+'🔥'"></div><div class="text-xs text-slate-400 mt-1">Série</div></div>
+  </div>
+  <div class="px-4 mb-6">
+    <template x-if="!session">
+      <button @click="openSessionPicker()" class="w-full bg-blue-600 hover:bg-blue-500 active:scale-95 text-white font-bold py-5 rounded-2xl text-lg transition-all shadow-lg shadow-blue-900/40">🚀 Démarrer une séance</button>
+    </template>
+    <template x-if="session">
+      <button @click="tab='seance'" class="w-full bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-bold py-5 rounded-2xl text-lg transition-all shadow-lg shadow-emerald-900/40 flex items-center justify-center gap-3">
+        <span class="w-2.5 h-2.5 bg-white rounded-full pulse-dot"></span>Séance en cours — reprendre
+      </button>
+    </template>
+  </div>
+  <div class="px-4">
+    <h2 class="text-base font-semibold text-slate-300 mb-3">Dernières séances</h2>
+    <template x-if="sessions.length===0">
+      <div class="text-center py-10 text-slate-600"><div class="text-5xl mb-3">🏋️</div><p class="font-medium">Aucune séance enregistrée</p><p class="text-sm mt-1">Lance ta première séance !</p></div>
+    </template>
+    <template x-for="s in sessions.slice(0,3)" :key="s.id">
+      <div class="bg-slate-800 rounded-2xl p-4 mb-3 border border-slate-700/50">
+        <div class="flex justify-between items-start mb-2">
+          <div class="font-semibold text-white text-sm capitalize" x-text="formatDate(s.date)"></div>
+          <div class="text-xs text-slate-500 bg-slate-700/50 px-2 py-0.5 rounded-full" x-text="formatTime(s.date)"></div>
+        </div>
+        <div class="text-xs text-slate-400 mb-2">
+          <span x-text="s.exercises.length+' exercice(s)'"></span><span class="mx-2 text-slate-600">·</span>
+          <span x-text="formatDuration(s.duration)"></span><span class="mx-2 text-slate-600">·</span>
+          <span x-text="totalVolume(s)+' kg soulevés'"></span>
+        </div>
+        <div class="flex flex-wrap gap-1.5">
+          <template x-for="ex in s.exercises" :key="ex.id">
+            <span class="text-xs px-2 py-0.5 rounded-full" :style="groupBadgeStyle(ex.group)" x-text="ex.group"></span>
+          </template>
+        </div>
+      </div>
+    </template>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     SÉANCE EN COURS
+══════════════════════════════════════════════════════ -->
+<div x-show="tab==='seance'" x-cloak>
+  <div class="sticky top-0 z-10 bg-slate-900/95 backdrop-blur border-b border-slate-700 px-4 py-3 flex items-center justify-between">
+    <div>
+      <div class="text-xs text-slate-400 mb-0.5" x-text="session?.programmeName?'📋 '+session.programmeName:'Séance libre'"></div>
+      <div class="text-2xl font-mono font-bold text-blue-400" x-text="formatDuration(sessionSeconds)"></div>
+    </div>
+    <button @click="confirmFinish=true" class="bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-semibold px-5 py-2.5 rounded-xl text-sm transition-all">✓ Terminer</button>
+  </div>
+  <div class="px-4 pt-4">
+    <template x-if="!session||session.exercises.length===0">
+      <div class="text-center py-16 text-slate-500"><div class="text-5xl mb-4">➕</div><p class="font-medium text-slate-400 text-lg">Ajoute ton premier exercice</p><p class="text-sm mt-1">en appuyant sur le bouton ci-dessous</p></div>
+    </template>
+    <template x-if="session">
+      <template x-for="(exercise,exIdx) in session.exercises" :key="exercise.id">
+        <div class="bg-slate-800 rounded-2xl mb-4 overflow-hidden border border-slate-700/50">
+          <div class="px-4 py-3 flex items-center justify-between border-b border-slate-700">
+            <div>
+              <div class="text-sm font-semibold text-white leading-tight" x-text="exercise.name"></div>
+              <div class="text-xs mt-0.5 font-medium" :style="`color:${groupColor(exercise.group)}`" x-text="exercise.group"></div>
+            </div>
+            <button @click="session.exercises.splice(exIdx,1)" class="text-slate-600 hover:text-red-400 p-1.5 rounded-lg hover:bg-red-400/10 transition-colors">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+          </div>
+          <div class="grid grid-cols-12 px-4 py-2 text-xs font-medium text-slate-500">
+            <div class="col-span-1">#</div><div class="col-span-5 text-center">Poids (kg)</div><div class="col-span-4 text-center">Reps</div><div class="col-span-2 text-center">✓</div>
+          </div>
+          <template x-for="(set,setIdx) in exercise.sets" :key="setIdx">
+            <div class="grid grid-cols-12 items-center px-4 py-2 gap-1 transition-colors" :class="set.done?'bg-emerald-950/40':''">
+              <div class="col-span-1 text-slate-500 text-sm font-mono" x-text="setIdx+1"></div>
+              <div class="col-span-5"><div class="flex items-center bg-slate-700 rounded-xl overflow-hidden">
+                <button @click="set.weight=Math.max(0,parseFloat((set.weight-2.5).toFixed(1)))" class="px-2.5 py-2 text-slate-400 hover:text-white hover:bg-slate-600 text-base font-bold leading-none transition-colors select-none">−</button>
+                <input type="number" x-model.number="set.weight" step="2.5" min="0" class="flex-1 bg-transparent text-center text-white text-sm font-semibold focus:outline-none w-0 min-w-0">
+                <button @click="set.weight=parseFloat((set.weight+2.5).toFixed(1))" class="px-2.5 py-2 text-slate-400 hover:text-white hover:bg-slate-600 text-base font-bold leading-none transition-colors select-none">+</button>
+              </div></div>
+              <div class="col-span-4"><div class="flex items-center bg-slate-700 rounded-xl overflow-hidden">
+                <button @click="set.reps=Math.max(1,set.reps-1)" class="px-2.5 py-2 text-slate-400 hover:text-white hover:bg-slate-600 text-base font-bold leading-none transition-colors select-none">−</button>
+                <input type="number" x-model.number="set.reps" min="1" class="flex-1 bg-transparent text-center text-white text-sm font-semibold focus:outline-none w-0 min-w-0">
+                <button @click="set.reps++" class="px-2.5 py-2 text-slate-400 hover:text-white hover:bg-slate-600 text-base font-bold leading-none transition-colors select-none">+</button>
+              </div></div>
+              <div class="col-span-2 flex justify-center">
+                <button @click="set.done=!set.done" :class="set.done?'bg-emerald-500 text-white':'bg-slate-700 text-slate-500 hover:bg-slate-600'" class="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold transition-all active:scale-90">✓</button>
+              </div>
+            </div>
+          </template>
+          <div class="px-4 py-3 border-t border-slate-700">
+            <button @click="exercise.sets.push({reps:exercise.sets.at(-1)?.reps??10,weight:exercise.sets.at(-1)?.weight??20,done:false})" class="w-full text-center text-blue-400 hover:text-blue-300 text-sm py-1 transition-colors">+ Ajouter une série</button>
+          </div>
+        </div>
+      </template>
+    </template>
+    <button @click="showExercisePicker='session'" class="w-full border-2 border-dashed border-slate-700 hover:border-blue-500/50 text-slate-500 hover:text-blue-400 font-medium py-4 rounded-2xl text-sm transition-all mb-6">+ Ajouter un exercice</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     PROGRAMMES
+══════════════════════════════════════════════════════ -->
+<div x-show="tab==='programmes'" x-cloak>
+
+  <!-- ── Liste des programmes ── -->
+  <div x-show="programmeView==='list'">
     <div class="px-4 pt-10 pb-4 flex items-center justify-between">
-      <div>
-        <h1 class="text-2xl font-bold text-white">💪 GymTracker</h1>
-        <p class="text-slate-400 text-sm mt-0.5">Suivi de tes séances</p>
-      </div>
-      <div class="text-right text-xs text-slate-500 max-w-[130px]" x-text="todayStr"></div>
+      <div><h1 class="text-2xl font-bold text-white">Programmes</h1>
+      <p class="text-slate-400 text-sm mt-0.5" x-text="programmes.length+' programme(s)'"></p></div>
+      <button @click="startNewProgramme()" class="bg-blue-600 hover:bg-blue-500 active:scale-95 text-white font-semibold px-4 py-2.5 rounded-xl text-sm transition-all flex items-center gap-2">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>Nouveau
+      </button>
     </div>
-
-    <div class="grid grid-cols-3 gap-3 px-4 mb-6">
-      <div class="bg-slate-800 rounded-2xl p-4 text-center">
-        <div class="text-2xl font-bold text-blue-400" x-text="stats.total"></div>
-        <div class="text-xs text-slate-400 mt-1">Total</div>
-      </div>
-      <div class="bg-slate-800 rounded-2xl p-4 text-center">
-        <div class="text-2xl font-bold text-violet-400" x-text="stats.thisWeek"></div>
-        <div class="text-xs text-slate-400 mt-1">Cette semaine</div>
-      </div>
-      <div class="bg-slate-800 rounded-2xl p-4 text-center">
-        <div class="text-2xl font-bold text-orange-400" x-text="stats.streak + '🔥'"></div>
-        <div class="text-xs text-slate-400 mt-1">Série</div>
-      </div>
-    </div>
-
-    <div class="px-4 mb-6">
-      <template x-if="!session">
-        <button @click="openSessionPicker()"
-          class="w-full bg-blue-600 hover:bg-blue-500 active:scale-95 text-white font-bold py-5 rounded-2xl text-lg transition-all shadow-lg shadow-blue-900/40">
-          🚀 Démarrer une séance
-        </button>
-      </template>
-      <template x-if="session">
-        <button @click="tab='seance'"
-          class="w-full bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-bold py-5 rounded-2xl text-lg transition-all shadow-lg shadow-emerald-900/40 flex items-center justify-center gap-3">
-          <span class="w-2.5 h-2.5 bg-white rounded-full pulse-dot"></span>
-          Séance en cours — reprendre
-        </button>
-      </template>
-    </div>
-
+    <template x-if="programmes.length===0">
+      <div class="text-center py-12 text-slate-600 px-8"><div class="text-5xl mb-4">📋</div><p class="font-medium text-slate-400 text-lg">Aucun programme</p><p class="text-sm mt-2 text-slate-500">Crée un programme pour pré-remplir tes séances.</p></div>
+    </template>
     <div class="px-4">
-      <h2 class="text-base font-semibold text-slate-300 mb-3">Dernières séances</h2>
-      <template x-if="sessions.length === 0">
-        <div class="text-center py-10 text-slate-600">
-          <div class="text-5xl mb-3">🏋️</div>
-          <p class="font-medium">Aucune séance enregistrée</p>
-          <p class="text-sm mt-1">Lance ta première séance !</p>
-        </div>
-      </template>
-      <template x-for="s in sessions.slice(0,3)" :key="s.id">
-        <div class="bg-slate-800 rounded-2xl p-4 mb-3 border border-slate-700/50">
-          <div class="flex justify-between items-start mb-2">
-            <div class="font-semibold text-white text-sm capitalize" x-text="formatDate(s.date)"></div>
-            <div class="text-xs text-slate-500 bg-slate-700/50 px-2 py-0.5 rounded-full" x-text="formatTime(s.date)"></div>
+      <template x-for="prog in programmes" :key="prog.id">
+        <div class="bg-slate-800 rounded-2xl mb-3 border border-slate-700/50 overflow-hidden">
+          <div class="p-4 flex items-start justify-between">
+            <div class="flex-1 min-w-0">
+              <div class="font-bold text-white text-base" x-text="prog.name"></div>
+              <div class="text-xs text-slate-400 mt-1" x-text="prog.exercises.length+' exercice(s)'"></div>
+              <div class="flex flex-wrap gap-1.5 mt-2">
+                <template x-for="ex in prog.exercises" :key="ex.id">
+                  <span class="text-xs px-2 py-0.5 rounded-full" :style="groupBadgeStyle(ex.group)" x-text="ex.group"></span>
+                </template>
+              </div>
+            </div>
+            <div class="flex items-center gap-1 ml-3 flex-shrink-0">
+              <button @click="editProgramme(prog)" class="p-2 rounded-xl text-slate-400 hover:text-blue-400 hover:bg-blue-400/10 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+              </button>
+              <button @click="confirmDeleteProgrammeId=prog.id" class="p-2 rounded-xl text-slate-400 hover:text-red-400 hover:bg-red-400/10 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+              </button>
+            </div>
           </div>
-          <div class="text-xs text-slate-400 mb-2">
-            <span x-text="s.exercises.length + ' exercice(s)'"></span>
-            <span class="mx-2 text-slate-600">·</span>
-            <span x-text="formatDuration(s.duration)"></span>
-            <span class="mx-2 text-slate-600">·</span>
-            <span x-text="totalVolume(s) + ' kg soulevés'"></span>
-          </div>
-          <div class="flex flex-wrap gap-1.5">
-            <template x-for="ex in s.exercises" :key="ex.id">
-              <span class="text-xs px-2 py-0.5 rounded-full" :style="groupBadgeStyle(ex.group)" x-text="ex.group"></span>
+          <div class="border-t border-slate-700 px-4 py-3">
+            <template x-for="ex in prog.exercises" :key="ex.id">
+              <div class="flex items-center justify-between py-1.5 text-sm">
+                <span class="text-slate-300" x-text="ex.name"></span>
+                <span class="text-slate-500 text-xs" x-text="ex.sets+' × '+ex.reps+' reps — '+ex.weight+' kg'"></span>
+              </div>
             </template>
           </div>
         </div>
       </template>
+
+      <!-- Bouton Gérer les exercices -->
+      <button @click="programmeView='exercises'"
+        class="w-full flex items-center justify-between px-4 py-4 bg-slate-800 hover:bg-slate-700 rounded-2xl border border-slate-700/50 transition-colors mt-2 mb-4">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 bg-blue-600/20 rounded-xl flex items-center justify-center text-lg">📝</div>
+          <div class="text-left">
+            <div class="text-sm font-semibold text-white">Gérer les exercices</div>
+            <div class="text-xs text-slate-400" x-text="exercises.length+' exercice(s) disponible(s)'"></div>
+          </div>
+        </div>
+        <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+      </button>
     </div>
   </div>
 
-  <!-- ══════════════════════════════════════════
-       SÉANCE EN COURS
-  ══════════════════════════════════════════ -->
-  <div x-show="tab === 'seance'" x-cloak>
+  <!-- ── Éditeur de programme ── -->
+  <div x-show="programmeView==='editor'">
     <div class="sticky top-0 z-10 bg-slate-900/95 backdrop-blur border-b border-slate-700 px-4 py-3 flex items-center justify-between">
-      <div>
-        <div class="text-xs text-slate-400 mb-0.5" x-text="session?.programmeName ? '📋 ' + session.programmeName : 'Séance libre'"></div>
-        <div class="text-2xl font-mono font-bold text-blue-400" x-text="formatDuration(sessionSeconds)"></div>
-      </div>
-      <button @click="confirmFinish = true"
-        class="bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-semibold px-5 py-2.5 rounded-xl text-sm transition-all">
-        ✓ Terminer
+      <button @click="cancelProgrammeEdit()" class="text-slate-400 hover:text-white p-1 transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
       </button>
+      <h2 class="font-bold text-white" x-text="editingProgramme?.id?'Modifier le programme':'Nouveau programme'"></h2>
+      <button @click="saveProgramme()" class="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-4 py-1.5 rounded-xl text-sm transition-colors">Sauvegarder</button>
     </div>
-
-    <div class="px-4 pt-4">
-      <template x-if="!session || session.exercises.length === 0">
-        <div class="text-center py-16 text-slate-500">
-          <div class="text-5xl mb-4">➕</div>
-          <p class="font-medium text-slate-400 text-lg">Ajoute ton premier exercice</p>
-          <p class="text-sm mt-1">en appuyant sur le bouton ci-dessous</p>
-        </div>
+    <div class="px-4 pt-5" x-show="editingProgramme">
+      <div class="mb-5">
+        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Nom du programme</label>
+        <input type="text" x-model="editingProgramme.name" placeholder="ex: Push Day, Full Body…" class="w-full bg-slate-800 border border-slate-700 focus:border-blue-500 text-white rounded-2xl px-4 py-3.5 text-sm focus:outline-none transition-colors placeholder-slate-600">
+      </div>
+      <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Exercices</label>
+      <template x-if="editingProgramme.exercises.length===0">
+        <div class="text-center py-8 text-slate-600 mb-4"><p class="text-sm">Aucun exercice — ajoutes-en un ci-dessous</p></div>
       </template>
-
-      <template x-if="session">
-        <template x-for="(exercise, exIdx) in session.exercises" :key="exercise.id">
-          <div class="bg-slate-800 rounded-2xl mb-4 overflow-hidden border border-slate-700/50">
-            <div class="px-4 py-3 flex items-center justify-between border-b border-slate-700">
-              <div>
-                <div class="text-sm font-semibold text-white leading-tight" x-text="exercise.name"></div>
-                <div class="text-xs mt-0.5 font-medium" :style="`color:${groupColor(exercise.group)}`" x-text="exercise.group"></div>
+      <template x-for="(ex,exIdx) in editingProgramme.exercises" :key="ex.id+exIdx">
+        <div class="bg-slate-800 rounded-2xl mb-3 overflow-hidden border border-slate-700/50">
+          <div class="px-4 py-3 flex items-center justify-between border-b border-slate-700">
+            <div><div class="text-sm font-semibold text-white" x-text="ex.name"></div><div class="text-xs mt-0.5 font-medium" :style="`color:${groupColor(ex.group)}`" x-text="ex.group"></div></div>
+            <button @click="editingProgramme.exercises.splice(exIdx,1)" class="text-slate-600 hover:text-red-400 p-1.5 rounded-lg hover:bg-red-400/10 transition-colors">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+          </div>
+          <div class="grid grid-cols-3 gap-3 px-4 py-3">
+            <div><div class="text-xs text-slate-500 mb-1.5 text-center">Séries</div>
+              <div class="flex items-center bg-slate-700 rounded-xl overflow-hidden">
+                <button @click="ex.sets=Math.max(1,ex.sets-1)" class="px-2 py-2 text-slate-400 hover:text-white text-base font-bold leading-none select-none">−</button>
+                <input type="number" x-model.number="ex.sets" min="1" class="flex-1 bg-transparent text-center text-white text-sm font-semibold focus:outline-none w-0 min-w-0">
+                <button @click="ex.sets++" class="px-2 py-2 text-slate-400 hover:text-white text-base font-bold leading-none select-none">+</button>
               </div>
-              <button @click="session.exercises.splice(exIdx,1)"
-                class="text-slate-600 hover:text-red-400 p-1.5 rounded-lg hover:bg-red-400/10 transition-colors">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-              </button>
             </div>
-
-            <div class="grid grid-cols-12 px-4 py-2 text-xs font-medium text-slate-500">
-              <div class="col-span-1">#</div>
-              <div class="col-span-5 text-center">Poids (kg)</div>
-              <div class="col-span-4 text-center">Reps</div>
-              <div class="col-span-2 text-center">✓</div>
-            </div>
-
-            <template x-for="(set, setIdx) in exercise.sets" :key="setIdx">
-              <div class="grid grid-cols-12 items-center px-4 py-2 gap-1 transition-colors" :class="set.done ? 'bg-emerald-950/40' : ''">
-                <div class="col-span-1 text-slate-500 text-sm font-mono" x-text="setIdx+1"></div>
-                <div class="col-span-5">
-                  <div class="flex items-center bg-slate-700 rounded-xl overflow-hidden">
-                    <button @click="set.weight=Math.max(0,parseFloat((set.weight-2.5).toFixed(1)))" class="px-2.5 py-2 text-slate-400 hover:text-white hover:bg-slate-600 text-base font-bold leading-none transition-colors select-none">−</button>
-                    <input type="number" x-model.number="set.weight" step="2.5" min="0" class="flex-1 bg-transparent text-center text-white text-sm font-semibold focus:outline-none w-0 min-w-0">
-                    <button @click="set.weight=parseFloat((set.weight+2.5).toFixed(1))" class="px-2.5 py-2 text-slate-400 hover:text-white hover:bg-slate-600 text-base font-bold leading-none transition-colors select-none">+</button>
-                  </div>
-                </div>
-                <div class="col-span-4">
-                  <div class="flex items-center bg-slate-700 rounded-xl overflow-hidden">
-                    <button @click="set.reps=Math.max(1,set.reps-1)" class="px-2.5 py-2 text-slate-400 hover:text-white hover:bg-slate-600 text-base font-bold leading-none transition-colors select-none">−</button>
-                    <input type="number" x-model.number="set.reps" min="1" class="flex-1 bg-transparent text-center text-white text-sm font-semibold focus:outline-none w-0 min-w-0">
-                    <button @click="set.reps++" class="px-2.5 py-2 text-slate-400 hover:text-white hover:bg-slate-600 text-base font-bold leading-none transition-colors select-none">+</button>
-                  </div>
-                </div>
-                <div class="col-span-2 flex justify-center">
-                  <button @click="set.done=!set.done"
-                    :class="set.done ? 'bg-emerald-500 text-white' : 'bg-slate-700 text-slate-500 hover:bg-slate-600'"
-                    class="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold transition-all active:scale-90">✓</button>
-                </div>
+            <div><div class="text-xs text-slate-500 mb-1.5 text-center">Reps</div>
+              <div class="flex items-center bg-slate-700 rounded-xl overflow-hidden">
+                <button @click="ex.reps=Math.max(1,ex.reps-1)" class="px-2 py-2 text-slate-400 hover:text-white text-base font-bold leading-none select-none">−</button>
+                <input type="number" x-model.number="ex.reps" min="1" class="flex-1 bg-transparent text-center text-white text-sm font-semibold focus:outline-none w-0 min-w-0">
+                <button @click="ex.reps++" class="px-2 py-2 text-slate-400 hover:text-white text-base font-bold leading-none select-none">+</button>
               </div>
-            </template>
-
-            <div class="px-4 py-3 border-t border-slate-700">
-              <button @click="exercise.sets.push({reps:exercise.sets.at(-1)?.reps??10,weight:exercise.sets.at(-1)?.weight??20,done:false})"
-                class="w-full text-center text-blue-400 hover:text-blue-300 text-sm py-1 transition-colors">
-                + Ajouter une série
-              </button>
+            </div>
+            <div><div class="text-xs text-slate-500 mb-1.5 text-center">Poids (kg)</div>
+              <div class="flex items-center bg-slate-700 rounded-xl overflow-hidden">
+                <button @click="ex.weight=Math.max(0,parseFloat((ex.weight-2.5).toFixed(1)))" class="px-2 py-2 text-slate-400 hover:text-white text-base font-bold leading-none select-none">−</button>
+                <input type="number" x-model.number="ex.weight" step="2.5" min="0" class="flex-1 bg-transparent text-center text-white text-sm font-semibold focus:outline-none w-0 min-w-0">
+                <button @click="ex.weight=parseFloat((ex.weight+2.5).toFixed(1))" class="px-2 py-2 text-slate-400 hover:text-white text-base font-bold leading-none select-none">+</button>
+              </div>
             </div>
           </div>
-        </template>
+        </div>
       </template>
-
-      <button @click="showExercisePicker='session'"
-        class="w-full border-2 border-dashed border-slate-700 hover:border-blue-500/50 text-slate-500 hover:text-blue-400 font-medium py-4 rounded-2xl text-sm transition-all mb-6">
-        + Ajouter un exercice
-      </button>
+      <button @click="showExercisePicker='programme'" class="w-full border-2 border-dashed border-slate-700 hover:border-blue-500/50 text-slate-500 hover:text-blue-400 font-medium py-4 rounded-2xl text-sm transition-all mb-8">+ Ajouter un exercice</button>
     </div>
   </div>
 
-  <!-- ══════════════════════════════════════════
-       PROGRAMMES
-  ══════════════════════════════════════════ -->
-  <div x-show="tab === 'programmes'" x-cloak>
-
-    <!-- LIST -->
-    <div x-show="programmeView === 'list'">
-      <div class="px-4 pt-10 pb-4 flex items-center justify-between">
-        <div>
-          <h1 class="text-2xl font-bold text-white">Programmes</h1>
-          <p class="text-slate-400 text-sm mt-0.5" x-text="programmes.length + ' programme(s)'"></p>
-        </div>
-        <button @click="startNewProgramme()"
-          class="bg-blue-600 hover:bg-blue-500 active:scale-95 text-white font-semibold px-4 py-2.5 rounded-xl text-sm transition-all flex items-center gap-2">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-          Nouveau
-        </button>
-      </div>
-
-      <template x-if="programmes.length === 0">
-        <div class="text-center py-16 text-slate-600 px-8">
-          <div class="text-5xl mb-4">📋</div>
-          <p class="font-medium text-slate-400 text-lg">Aucun programme</p>
-          <p class="text-sm mt-2 text-slate-500">Crée un programme pour pré-remplir tes séances avec tes exercices habituels.</p>
-        </div>
-      </template>
-
-      <div class="px-4">
-        <template x-for="prog in programmes" :key="prog.id">
-          <div class="bg-slate-800 rounded-2xl mb-3 border border-slate-700/50 overflow-hidden">
-            <div class="p-4 flex items-start justify-between">
-              <div class="flex-1 min-w-0">
-                <div class="font-bold text-white text-base" x-text="prog.name"></div>
-                <div class="text-xs text-slate-400 mt-1" x-text="prog.exercises.length + ' exercice(s)'"></div>
-                <div class="flex flex-wrap gap-1.5 mt-2">
-                  <template x-for="ex in prog.exercises" :key="ex.id">
-                    <span class="text-xs px-2 py-0.5 rounded-full" :style="groupBadgeStyle(ex.group)" x-text="ex.group"></span>
-                  </template>
-                </div>
-              </div>
-              <div class="flex items-center gap-1 ml-3 flex-shrink-0">
-                <button @click="editProgramme(prog)"
-                  class="p-2 rounded-xl text-slate-400 hover:text-blue-400 hover:bg-blue-400/10 transition-colors">
+  <!-- ── Liste des exercices ── -->
+  <div x-show="programmeView==='exercises'">
+    <div class="sticky top-0 z-10 bg-slate-900/95 backdrop-blur border-b border-slate-700 px-4 py-3 flex items-center justify-between">
+      <button @click="programmeView='list'" class="text-slate-400 hover:text-white p-1 transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+      </button>
+      <h2 class="font-bold text-white">Exercices</h2>
+      <button @click="startNewExercise()" class="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-4 py-1.5 rounded-xl text-sm transition-colors flex items-center gap-1.5">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>Nouveau
+      </button>
+    </div>
+    <div class="px-4 pt-4">
+      <template x-for="group in exerciseGroups" :key="group.name">
+        <div class="mb-5">
+          <h3 class="text-xs font-bold uppercase tracking-wider mb-2 px-1 flex items-center gap-2" :style="`color:${groupColor(group.name)}`">
+            <span x-text="group.emoji"></span><span x-text="group.name"></span>
+            <span class="text-slate-600 font-normal normal-case tracking-normal" x-text="'('+group.exercises.length+')'"></span>
+          </h3>
+          <template x-for="ex in group.exercises" :key="ex.id">
+            <div class="bg-slate-800 rounded-2xl mb-2 px-4 py-3 flex items-center justify-between border border-slate-700/50">
+              <span class="text-sm text-slate-200 flex-1 mr-3" x-text="ex.name"></span>
+              <div class="flex items-center gap-1 flex-shrink-0">
+                <button @click="startEditExercise(ex)" class="p-2 rounded-xl text-slate-500 hover:text-blue-400 hover:bg-blue-400/10 transition-colors">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                 </button>
-                <button @click="confirmDeleteProgrammeId = prog.id"
-                  class="p-2 rounded-xl text-slate-400 hover:text-red-400 hover:bg-red-400/10 transition-colors">
+                <button @click="confirmDeleteExerciseId=ex.id" class="p-2 rounded-xl text-slate-500 hover:text-red-400 hover:bg-red-400/10 transition-colors">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                 </button>
               </div>
             </div>
-            <div class="border-t border-slate-700 px-4 py-3">
-              <template x-for="ex in prog.exercises" :key="ex.id">
-                <div class="flex items-center justify-between py-1.5 text-sm">
-                  <span class="text-slate-300" x-text="ex.name"></span>
-                  <span class="text-slate-500 text-xs" x-text="ex.sets + ' × ' + ex.reps + ' reps — ' + ex.weight + ' kg'"></span>
-                </div>
-              </template>
-            </div>
-          </div>
-        </template>
-      </div>
-    </div>
-
-    <!-- EDITOR -->
-    <div x-show="programmeView === 'editor'">
-      <div class="sticky top-0 z-10 bg-slate-900/95 backdrop-blur border-b border-slate-700 px-4 py-3 flex items-center justify-between">
-        <button @click="cancelProgrammeEdit()" class="text-slate-400 hover:text-white p-1 transition-colors">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-        </button>
-        <h2 class="font-bold text-white" x-text="editingProgramme?.id ? 'Modifier le programme' : 'Nouveau programme'"></h2>
-        <button @click="saveProgramme()"
-          class="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-4 py-1.5 rounded-xl text-sm transition-colors">
-          Sauvegarder
-        </button>
-      </div>
-
-      <div class="px-4 pt-5" x-show="editingProgramme">
-        <div class="mb-5">
-          <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Nom du programme</label>
-          <input type="text" x-model="editingProgramme.name" placeholder="ex: Push Day, Full Body…"
-            class="w-full bg-slate-800 border border-slate-700 focus:border-blue-500 text-white rounded-2xl px-4 py-3.5 text-sm focus:outline-none transition-colors placeholder-slate-600">
+          </template>
         </div>
-
-        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Exercices</label>
-
-        <template x-if="editingProgramme.exercises.length === 0">
-          <div class="text-center py-8 text-slate-600 mb-4">
-            <p class="text-sm">Aucun exercice — ajoutes-en un ci-dessous</p>
-          </div>
-        </template>
-
-        <template x-for="(ex, exIdx) in editingProgramme.exercises" :key="ex.id + exIdx">
-          <div class="bg-slate-800 rounded-2xl mb-3 overflow-hidden border border-slate-700/50">
-            <div class="px-4 py-3 flex items-center justify-between border-b border-slate-700">
-              <div>
-                <div class="text-sm font-semibold text-white" x-text="ex.name"></div>
-                <div class="text-xs mt-0.5 font-medium" :style="`color:${groupColor(ex.group)}`" x-text="ex.group"></div>
-              </div>
-              <button @click="editingProgramme.exercises.splice(exIdx,1)"
-                class="text-slate-600 hover:text-red-400 p-1.5 rounded-lg hover:bg-red-400/10 transition-colors">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-              </button>
-            </div>
-            <div class="grid grid-cols-3 gap-3 px-4 py-3">
-              <div>
-                <div class="text-xs text-slate-500 mb-1.5 text-center">Séries</div>
-                <div class="flex items-center bg-slate-700 rounded-xl overflow-hidden">
-                  <button @click="ex.sets=Math.max(1,ex.sets-1)" class="px-2 py-2 text-slate-400 hover:text-white text-base font-bold leading-none select-none">−</button>
-                  <input type="number" x-model.number="ex.sets" min="1" class="flex-1 bg-transparent text-center text-white text-sm font-semibold focus:outline-none w-0 min-w-0">
-                  <button @click="ex.sets++" class="px-2 py-2 text-slate-400 hover:text-white text-base font-bold leading-none select-none">+</button>
-                </div>
-              </div>
-              <div>
-                <div class="text-xs text-slate-500 mb-1.5 text-center">Reps</div>
-                <div class="flex items-center bg-slate-700 rounded-xl overflow-hidden">
-                  <button @click="ex.reps=Math.max(1,ex.reps-1)" class="px-2 py-2 text-slate-400 hover:text-white text-base font-bold leading-none select-none">−</button>
-                  <input type="number" x-model.number="ex.reps" min="1" class="flex-1 bg-transparent text-center text-white text-sm font-semibold focus:outline-none w-0 min-w-0">
-                  <button @click="ex.reps++" class="px-2 py-2 text-slate-400 hover:text-white text-base font-bold leading-none select-none">+</button>
-                </div>
-              </div>
-              <div>
-                <div class="text-xs text-slate-500 mb-1.5 text-center">Poids (kg)</div>
-                <div class="flex items-center bg-slate-700 rounded-xl overflow-hidden">
-                  <button @click="ex.weight=Math.max(0,parseFloat((ex.weight-2.5).toFixed(1)))" class="px-2 py-2 text-slate-400 hover:text-white text-base font-bold leading-none select-none">−</button>
-                  <input type="number" x-model.number="ex.weight" step="2.5" min="0" class="flex-1 bg-transparent text-center text-white text-sm font-semibold focus:outline-none w-0 min-w-0">
-                  <button @click="ex.weight=parseFloat((ex.weight+2.5).toFixed(1))" class="px-2 py-2 text-slate-400 hover:text-white text-base font-bold leading-none select-none">+</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </template>
-
-        <button @click="showExercisePicker='programme'"
-          class="w-full border-2 border-dashed border-slate-700 hover:border-blue-500/50 text-slate-500 hover:text-blue-400 font-medium py-4 rounded-2xl text-sm transition-all mb-8">
-          + Ajouter un exercice
-        </button>
-      </div>
+      </template>
     </div>
   </div>
 
-  <!-- ══════════════════════════════════════════
-       HISTORIQUE
-  ══════════════════════════════════════════ -->
-  <div x-show="tab === 'historique'" x-cloak>
-    <div class="px-4 pt-10 pb-4">
-      <h1 class="text-2xl font-bold text-white">Historique</h1>
-      <p class="text-slate-400 text-sm mt-0.5" x-text="sessions.length + ' séance(s) enregistrée(s)'"></p>
-    </div>
+</div>
 
-    <template x-if="sessions.length === 0">
-      <div class="text-center py-20 text-slate-600">
-        <div class="text-5xl mb-3">📅</div>
-        <p class="font-medium">Aucune séance pour l'instant</p>
-      </div>
-    </template>
-
-    <div class="px-4">
-      <template x-for="s in sessions" :key="s.id">
-        <div class="bg-slate-800 rounded-2xl mb-3 overflow-hidden border border-slate-700/50 cursor-pointer"
-          @click="expandedSession = expandedSession === s.id ? null : s.id">
-          <div class="p-4 flex justify-between items-center">
-            <div class="flex-1">
-              <div class="font-semibold text-white capitalize" x-text="formatDate(s.date)"></div>
-              <div class="text-xs text-slate-400 mt-1 flex items-center gap-2 flex-wrap">
-                <template x-if="s.programmeName">
-                  <span class="text-blue-400 font-medium" x-text="'📋 ' + s.programmeName"></span>
+<!-- ══════════════════════════════════════════════════════
+     HISTORIQUE
+══════════════════════════════════════════════════════ -->
+<div x-show="tab==='historique'" x-cloak>
+  <div class="px-4 pt-10 pb-4"><h1 class="text-2xl font-bold text-white">Historique</h1><p class="text-slate-400 text-sm mt-0.5" x-text="sessions.length+' séance(s) enregistrée(s)'"></p></div>
+  <template x-if="sessions.length===0">
+    <div class="text-center py-20 text-slate-600"><div class="text-5xl mb-3">📅</div><p class="font-medium">Aucune séance pour l'instant</p></div>
+  </template>
+  <div class="px-4">
+    <template x-for="s in sessions" :key="s.id">
+      <div class="bg-slate-800 rounded-2xl mb-3 overflow-hidden border border-slate-700/50 cursor-pointer" @click="expandedSession=expandedSession===s.id?null:s.id">
+        <div class="p-4 flex justify-between items-center">
+          <div class="flex-1">
+            <div class="font-semibold text-white capitalize" x-text="formatDate(s.date)"></div>
+            <div class="text-xs text-slate-400 mt-1 flex items-center gap-2 flex-wrap">
+              <template x-if="s.programmeName"><span class="text-blue-400 font-medium" x-text="'📋 '+s.programmeName"></span></template>
+              <span x-text="s.exercises.length+' exercices'"></span><span class="text-slate-600">·</span>
+              <span x-text="formatDuration(s.duration)"></span><span class="text-slate-600">·</span>
+              <span x-text="totalVolume(s)+' kg'"></span>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 ml-2">
+            <span class="text-xs text-slate-500" x-text="formatTime(s.date)"></span>
+            <button @click.stop="confirmDeleteId=s.id" class="p-1.5 rounded-lg text-slate-600 hover:text-red-400 hover:bg-red-400/10 transition-colors">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            </button>
+            <svg class="w-4 h-4 text-slate-600 transition-transform flex-shrink-0" :class="expandedSession===s.id?'rotate-180':''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </div>
+        </div>
+        <div x-show="expandedSession===s.id" class="border-t border-slate-700 px-4 pt-3 pb-4">
+          <template x-for="ex in s.exercises" :key="ex.id">
+            <div class="mb-3">
+              <div class="text-xs font-semibold mb-1.5" :style="`color:${groupColor(ex.group)}`" x-text="ex.name"></div>
+              <div class="flex flex-wrap gap-1.5">
+                <template x-for="(set,i) in ex.sets" :key="i">
+                  <span class="text-xs px-2.5 py-1 rounded-full font-medium" :class="set.done?'bg-emerald-900/60 text-emerald-300':'bg-slate-700 text-slate-400 line-through'" x-text="`${set.weight} kg × ${set.reps}`"></span>
                 </template>
-                <span x-text="s.exercises.length + ' exercices'"></span>
-                <span class="text-slate-600">·</span>
-                <span x-text="formatDuration(s.duration)"></span>
-                <span class="text-slate-600">·</span>
-                <span x-text="totalVolume(s) + ' kg'"></span>
               </div>
             </div>
-            <div class="flex items-center gap-2 ml-2">
-              <span class="text-xs text-slate-500" x-text="formatTime(s.date)"></span>
-              <button @click.stop="confirmDeleteId = s.id"
-                class="p-1.5 rounded-lg text-slate-600 hover:text-red-400 hover:bg-red-400/10 transition-colors">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-              </button>
-              <svg class="w-4 h-4 text-slate-600 transition-transform flex-shrink-0" :class="expandedSession === s.id ? 'rotate-180' : ''"
-                fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-            </div>
-          </div>
-          <div x-show="expandedSession === s.id" class="border-t border-slate-700 px-4 pt-3 pb-4">
-            <template x-for="ex in s.exercises" :key="ex.id">
-              <div class="mb-3">
-                <div class="text-xs font-semibold mb-1.5" :style="`color:${groupColor(ex.group)}`" x-text="ex.name"></div>
-                <div class="flex flex-wrap gap-1.5">
-                  <template x-for="(set,i) in ex.sets" :key="i">
-                    <span class="text-xs px-2.5 py-1 rounded-full font-medium"
-                      :class="set.done ? 'bg-emerald-900/60 text-emerald-300' : 'bg-slate-700 text-slate-400 line-through'"
-                      x-text="`${set.weight} kg × ${set.reps}`"></span>
-                  </template>
-                </div>
-              </div>
-            </template>
-          </div>
+          </template>
         </div>
-      </template>
-    </div>
-  </div>
-
-  <!-- ══════════════════════════════════════════
-       PROGRESSION
-  ══════════════════════════════════════════ -->
-  <div x-show="tab === 'progression'" x-cloak>
-    <div class="px-4 pt-10 pb-4">
-      <h1 class="text-2xl font-bold text-white">Progression</h1>
-      <p class="text-slate-400 text-sm mt-0.5">Suivi de tes performances</p>
-    </div>
-    <div class="px-4 mb-5">
-      <select x-model="selectedExerciseId" @change="renderProgressChart()"
-        class="w-full bg-slate-800 border border-slate-700 text-white rounded-2xl px-4 py-3.5 text-sm focus:outline-none focus:border-blue-500 transition-colors">
-        <option value="">Choisir un exercice…</option>
-        <template x-for="group in exerciseGroups" :key="group.name">
-          <optgroup :label="group.emoji + ' ' + group.name">
-            <template x-for="ex in group.exercises" :key="ex.id">
-              <option :value="ex.id" x-text="ex.name"></option>
-            </template>
-          </optgroup>
-        </template>
-      </select>
-    </div>
-    <template x-if="!selectedExerciseId">
-      <div class="text-center py-16 text-slate-600">
-        <div class="text-5xl mb-3">📈</div>
-        <p class="font-medium">Sélectionne un exercice</p>
-        <p class="text-sm mt-1">pour voir ta progression</p>
       </div>
     </template>
-    <div class="px-4" x-show="selectedExerciseId">
-      <div class="grid grid-cols-3 gap-3 mb-5" x-show="progressStats.sessions > 0">
-        <div class="bg-slate-800 rounded-2xl p-4 text-center">
-          <div class="text-xl font-bold text-blue-400" x-text="progressStats.maxWeight + ' kg'"></div>
-          <div class="text-xs text-slate-400 mt-1">Record</div>
-        </div>
-        <div class="bg-slate-800 rounded-2xl p-4 text-center">
-          <div class="text-xl font-bold text-violet-400" x-text="progressStats.sessions"></div>
-          <div class="text-xs text-slate-400 mt-1">Séances</div>
-        </div>
-        <div class="bg-slate-800 rounded-2xl p-4 text-center">
-          <div class="text-2xl" x-text="progressStats.trend"></div>
-          <div class="text-xs text-slate-400 mt-1">Tendance</div>
-        </div>
-      </div>
-      <div class="bg-slate-800 rounded-2xl p-4 mb-4" x-show="progressStats.sessions > 0">
-        <div class="text-sm font-semibold text-slate-300 mb-4">Charge maximale par séance (kg)</div>
-        <canvas id="progressChart"></canvas>
-      </div>
-      <div class="bg-slate-800 rounded-2xl p-4" x-show="progressStats.sessions > 0">
-        <div class="text-sm font-semibold text-slate-300 mb-4">Volume total par séance (kg × reps)</div>
-        <canvas id="volumeChart"></canvas>
-      </div>
-      <template x-if="progressStats.sessions === 0">
-        <div class="text-center py-10 text-slate-600">
-          <div class="text-4xl mb-3">🔍</div>
-          <p>Pas encore de données pour cet exercice</p>
-        </div>
-      </template>
-    </div>
   </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     PROGRESSION
+══════════════════════════════════════════════════════ -->
+<div x-show="tab==='progression'" x-cloak>
+  <div class="px-4 pt-10 pb-4"><h1 class="text-2xl font-bold text-white">Progression</h1><p class="text-slate-400 text-sm mt-0.5">Suivi de tes performances</p></div>
+  <div class="px-4 mb-5">
+    <select x-model="selectedExerciseId" @change="renderProgressChart()" class="w-full bg-slate-800 border border-slate-700 text-white rounded-2xl px-4 py-3.5 text-sm focus:outline-none focus:border-blue-500 transition-colors">
+      <option value="">Choisir un exercice…</option>
+      <template x-for="group in exerciseGroups" :key="group.name">
+        <optgroup :label="group.emoji+' '+group.name">
+          <template x-for="ex in group.exercises" :key="ex.id">
+            <option :value="ex.id" x-text="ex.name"></option>
+          </template>
+        </optgroup>
+      </template>
+    </select>
+  </div>
+  <template x-if="!selectedExerciseId">
+    <div class="text-center py-16 text-slate-600"><div class="text-5xl mb-3">📈</div><p class="font-medium">Sélectionne un exercice</p><p class="text-sm mt-1">pour voir ta progression</p></div>
+  </template>
+  <div class="px-4" x-show="selectedExerciseId">
+    <div class="grid grid-cols-3 gap-3 mb-5" x-show="progressStats.sessions>0">
+      <div class="bg-slate-800 rounded-2xl p-4 text-center"><div class="text-xl font-bold text-blue-400" x-text="progressStats.maxWeight+' kg'"></div><div class="text-xs text-slate-400 mt-1">Record</div></div>
+      <div class="bg-slate-800 rounded-2xl p-4 text-center"><div class="text-xl font-bold text-violet-400" x-text="progressStats.sessions"></div><div class="text-xs text-slate-400 mt-1">Séances</div></div>
+      <div class="bg-slate-800 rounded-2xl p-4 text-center"><div class="text-2xl" x-text="progressStats.trend"></div><div class="text-xs text-slate-400 mt-1">Tendance</div></div>
+    </div>
+    <div class="bg-slate-800 rounded-2xl p-4 mb-4" x-show="progressStats.sessions>0"><div class="text-sm font-semibold text-slate-300 mb-4">Charge maximale par séance (kg)</div><canvas id="progressChart"></canvas></div>
+    <div class="bg-slate-800 rounded-2xl p-4" x-show="progressStats.sessions>0"><div class="text-sm font-semibold text-slate-300 mb-4">Volume total par séance (kg × reps)</div><canvas id="volumeChart"></canvas></div>
+    <template x-if="progressStats.sessions===0"><div class="text-center py-10 text-slate-600"><div class="text-4xl mb-3">🔍</div><p>Pas encore de données pour cet exercice</p></div></template>
+  </div>
+</div>
 
 </main>
 
 <!-- ══ BOTTOM NAV ══════════════════════════════════════════ -->
 <nav class="fixed bottom-0 left-0 right-0 bg-slate-900 border-t border-slate-700/50 flex z-20">
-  <button @click="tab='accueil'" :class="tab==='accueil'?'text-blue-400':'text-slate-500 hover:text-slate-300'"
-    class="flex-1 flex flex-col items-center py-3 gap-1 text-[10px] font-medium transition-colors">
-    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-    Accueil
+  <button @click="tab='accueil'" :class="tab==='accueil'?'text-blue-400':'text-slate-500 hover:text-slate-300'" class="flex-1 flex flex-col items-center py-3 gap-1 text-[10px] font-medium transition-colors">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>Accueil
   </button>
-  <button @click="tab='seance'" :class="tab==='seance'?'text-blue-400':'text-slate-500 hover:text-slate-300'"
-    class="flex-1 flex flex-col items-center py-3 gap-1 text-[10px] font-medium transition-colors relative">
+  <button @click="tab='seance'" :class="tab==='seance'?'text-blue-400':'text-slate-500 hover:text-slate-300'" class="flex-1 flex flex-col items-center py-3 gap-1 text-[10px] font-medium transition-colors relative">
     <div x-show="session" class="absolute top-2 right-[18%] w-2 h-2 bg-emerald-400 rounded-full pulse-dot"></div>
-    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-    Séance
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>Séance
   </button>
-  <button @click="tab='programmes'; programmeView='list'" :class="tab==='programmes'?'text-blue-400':'text-slate-500 hover:text-slate-300'"
-    class="flex-1 flex flex-col items-center py-3 gap-1 text-[10px] font-medium transition-colors">
-    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
-    Programmes
+  <button @click="tab='programmes';programmeView='list'" :class="tab==='programmes'?'text-blue-400':'text-slate-500 hover:text-slate-300'" class="flex-1 flex flex-col items-center py-3 gap-1 text-[10px] font-medium transition-colors">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>Programmes
   </button>
-  <button @click="tab='historique'" :class="tab==='historique'?'text-blue-400':'text-slate-500 hover:text-slate-300'"
-    class="flex-1 flex flex-col items-center py-3 gap-1 text-[10px] font-medium transition-colors">
-    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-    Historique
+  <button @click="tab='historique'" :class="tab==='historique'?'text-blue-400':'text-slate-500 hover:text-slate-300'" class="flex-1 flex flex-col items-center py-3 gap-1 text-[10px] font-medium transition-colors">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>Historique
   </button>
-  <button @click="tab='progression'; $nextTick(()=>renderProgressChart())" :class="tab==='progression'?'text-blue-400':'text-slate-500 hover:text-slate-300'"
-    class="flex-1 flex flex-col items-center py-3 gap-1 text-[10px] font-medium transition-colors">
-    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-    Progression
+  <button @click="tab='progression';$nextTick(()=>renderProgressChart())" :class="tab==='progression'?'text-blue-400':'text-slate-500 hover:text-slate-300'" class="flex-1 flex flex-col items-center py-3 gap-1 text-[10px] font-medium transition-colors">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>Progression
   </button>
 </nav>
 
@@ -514,36 +421,24 @@
   <div class="bg-slate-800 rounded-t-3xl w-full max-h-[80vh] flex flex-col border-t border-slate-700">
     <div class="p-4 flex justify-between items-center border-b border-slate-700 flex-shrink-0">
       <h3 class="font-bold text-white text-lg">Démarrer une séance</h3>
-      <button @click="showSessionPicker=false" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-700 transition-colors">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-      </button>
+      <button @click="showSessionPicker=false" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-700 transition-colors"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
     </div>
     <div class="overflow-y-auto p-4 flex-1">
-      <button @click="startSession(null); showSessionPicker=false"
-        class="w-full text-left px-4 py-4 bg-slate-700 hover:bg-slate-600 active:scale-[0.98] rounded-2xl mb-4 transition-all flex items-center gap-4">
+      <button @click="startSession(null);showSessionPicker=false" class="w-full text-left px-4 py-4 bg-slate-700 hover:bg-slate-600 active:scale-[0.98] rounded-2xl mb-4 transition-all flex items-center gap-4">
         <div class="w-10 h-10 bg-blue-600/20 rounded-xl flex items-center justify-center text-xl">🏋️</div>
-        <div>
-          <div class="font-semibold text-white">Séance libre</div>
-          <div class="text-xs text-slate-400 mt-0.5">Commence sans programme prédéfini</div>
-        </div>
+        <div><div class="font-semibold text-white">Séance libre</div><div class="text-xs text-slate-400 mt-0.5">Commence sans programme prédéfini</div></div>
       </button>
-      <template x-if="programmes.length > 0">
+      <template x-if="programmes.length>0">
         <div>
           <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 px-1">Mes programmes</div>
           <template x-for="prog in programmes" :key="prog.id">
-            <button @click="startSession(prog); showSessionPicker=false"
-              class="w-full text-left px-4 py-4 bg-slate-700 hover:bg-slate-600 active:scale-[0.98] rounded-2xl mb-3 transition-all">
+            <button @click="startSession(prog);showSessionPicker=false" class="w-full text-left px-4 py-4 bg-slate-700 hover:bg-slate-600 active:scale-[0.98] rounded-2xl mb-3 transition-all">
               <div class="flex items-center gap-3 mb-2">
                 <div class="w-10 h-10 bg-violet-600/20 rounded-xl flex items-center justify-center text-xl">📋</div>
-                <div>
-                  <div class="font-semibold text-white" x-text="prog.name"></div>
-                  <div class="text-xs text-slate-400" x-text="prog.exercises.length + ' exercice(s)'"></div>
-                </div>
+                <div><div class="font-semibold text-white" x-text="prog.name"></div><div class="text-xs text-slate-400" x-text="prog.exercises.length+' exercice(s)'"></div></div>
               </div>
               <div class="flex flex-wrap gap-1.5 pl-[52px]">
-                <template x-for="ex in prog.exercises" :key="ex.id">
-                  <span class="text-xs px-2 py-0.5 rounded-full" :style="groupBadgeStyle(ex.group)" x-text="ex.group"></span>
-                </template>
+                <template x-for="ex in prog.exercises" :key="ex.id"><span class="text-xs px-2 py-0.5 rounded-full" :style="groupBadgeStyle(ex.group)" x-text="ex.group"></span></template>
               </div>
             </button>
           </template>
@@ -558,18 +453,15 @@
   <div class="bg-slate-800 rounded-t-3xl w-full max-h-[80vh] flex flex-col border-t border-slate-700">
     <div class="p-4 flex justify-between items-center border-b border-slate-700 flex-shrink-0">
       <h3 class="font-semibold text-white text-lg">Choisir un exercice</h3>
-      <button @click="showExercisePicker=false" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-700 transition-colors">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-      </button>
+      <button @click="showExercisePicker=false" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-700 transition-colors"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
     </div>
     <div class="overflow-y-auto p-4 flex-1">
       <template x-for="group in exerciseGroups" :key="group.name">
         <div class="mb-5">
-          <h4 class="text-xs font-bold uppercase tracking-wider mb-2 px-1" :style="`color:${groupColor(group.name)}`" x-text="group.emoji + ' ' + group.name"></h4>
+          <h4 class="text-xs font-bold uppercase tracking-wider mb-2 px-1" :style="`color:${groupColor(group.name)}`" x-text="group.emoji+' '+group.name"></h4>
           <template x-for="ex in group.exercises" :key="ex.id">
-            <button @click="pickExercise(ex)"
-              :disabled="isExerciseAlreadyPicked(ex)"
-              :class="isExerciseAlreadyPicked(ex) ? 'opacity-40 cursor-not-allowed' : 'hover:bg-slate-700 active:scale-[0.98]'"
+            <button @click="pickExercise(ex)" :disabled="isExerciseAlreadyPicked(ex)"
+              :class="isExerciseAlreadyPicked(ex)?'opacity-40 cursor-not-allowed':'hover:bg-slate-700 active:scale-[0.98]'"
               class="w-full text-left px-4 py-3 rounded-xl text-sm text-slate-200 mb-1.5 transition-all flex items-center justify-between">
               <span x-text="ex.name"></span>
               <span x-show="isExerciseAlreadyPicked(ex)" class="text-emerald-400 text-xs font-medium">✓ Ajouté</span>
@@ -581,28 +473,82 @@
   </div>
 </div>
 
+<!-- ══ MODAL : ÉDITEUR D'EXERCICE ═════════════════════════ -->
+<div x-show="showExerciseEditor" x-cloak class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 flex items-end" @click.self="showExerciseEditor=false">
+  <div class="bg-slate-800 rounded-t-3xl w-full border-t border-slate-700">
+    <div class="p-4 flex justify-between items-center border-b border-slate-700">
+      <h3 class="font-bold text-white text-lg" x-text="editingExercise?.id?'Modifier l\'exercice':'Nouvel exercice'"></h3>
+      <button @click="showExerciseEditor=false" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-700 transition-colors"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+    </div>
+    <div class="p-4" x-show="editingExercise">
+      <!-- Nom -->
+      <div class="mb-4">
+        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Nom de l'exercice</label>
+        <input type="text" x-model="editingExercise.name" placeholder="ex: Curl incliné, Hip thrust…"
+          class="w-full bg-slate-700 border border-slate-600 focus:border-blue-500 text-white rounded-2xl px-4 py-3 text-sm focus:outline-none transition-colors placeholder-slate-500">
+      </div>
+      <!-- Groupe musculaire -->
+      <div class="mb-4">
+        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Groupe musculaire</label>
+        <div class="flex flex-wrap gap-2 mb-3">
+          <template x-for="g in existingGroups" :key="g">
+            <button @click="editingExercise.group=g;newGroupMode=false"
+              :class="editingExercise.group===g&&!newGroupMode?'ring-2 ring-blue-500 bg-blue-600/20 text-blue-300':'bg-slate-700 text-slate-300 hover:bg-slate-600'"
+              class="px-3 py-1.5 rounded-xl text-sm font-medium transition-all" x-text="g"></button>
+          </template>
+          <button @click="newGroupMode=true;editingExercise.group=''"
+            :class="newGroupMode?'ring-2 ring-violet-500 bg-violet-600/20 text-violet-300':'bg-slate-700 text-slate-400 hover:bg-slate-600'"
+            class="px-3 py-1.5 rounded-xl text-sm font-medium transition-all">+ Nouveau</button>
+        </div>
+        <template x-if="newGroupMode">
+          <input type="text" x-model="editingExercise.group" placeholder="Nom du nouveau groupe"
+            class="w-full bg-slate-700 border border-slate-600 focus:border-violet-500 text-white rounded-2xl px-4 py-3 text-sm focus:outline-none transition-colors placeholder-slate-500">
+        </template>
+      </div>
+      <!-- Actions -->
+      <div class="flex gap-3 mt-2">
+        <button @click="showExerciseEditor=false" class="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-300 py-3.5 rounded-2xl font-semibold transition-colors">Annuler</button>
+        <button @click="saveExercise()" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white py-3.5 rounded-2xl font-semibold transition-colors">Sauvegarder</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL : SUPPRIMER EXERCICE ═════════════════════════ -->
+<div x-show="confirmDeleteExerciseId!==null" x-cloak class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 flex items-center justify-center px-4">
+  <div class="bg-slate-800 rounded-3xl p-6 w-full max-w-sm border border-slate-700">
+    <div class="text-4xl text-center mb-3">🗑️</div>
+    <h3 class="font-bold text-white text-xl text-center mb-2">Supprimer l'exercice ?</h3>
+    <p class="text-slate-400 text-sm text-center mb-6">Il ne sera plus disponible dans le sélecteur d'exercices.</p>
+    <div class="flex gap-3">
+      <button @click="confirmDeleteExerciseId=null" class="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-300 py-3.5 rounded-2xl font-semibold transition-colors">Annuler</button>
+      <button @click="deleteExercise(confirmDeleteExerciseId);confirmDeleteExerciseId=null" class="flex-1 bg-red-600 hover:bg-red-500 text-white py-3.5 rounded-2xl font-semibold transition-colors">Supprimer</button>
+    </div>
+  </div>
+</div>
+
 <!-- ══ MODAL : SUPPRIMER SÉANCE ══════════════════════════ -->
-<div x-show="confirmDeleteId !== null" x-cloak class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 flex items-center justify-center px-4">
+<div x-show="confirmDeleteId!==null" x-cloak class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 flex items-center justify-center px-4">
   <div class="bg-slate-800 rounded-3xl p-6 w-full max-w-sm border border-slate-700">
     <div class="text-4xl text-center mb-3">🗑️</div>
     <h3 class="font-bold text-white text-xl text-center mb-2">Supprimer la séance ?</h3>
     <p class="text-slate-400 text-sm text-center mb-6">Cette action est irréversible.</p>
     <div class="flex gap-3">
       <button @click="confirmDeleteId=null" class="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-300 py-3.5 rounded-2xl font-semibold transition-colors">Annuler</button>
-      <button @click="deleteSession(confirmDeleteId); confirmDeleteId=null" class="flex-1 bg-red-600 hover:bg-red-500 text-white py-3.5 rounded-2xl font-semibold transition-colors">Supprimer</button>
+      <button @click="deleteSession(confirmDeleteId);confirmDeleteId=null" class="flex-1 bg-red-600 hover:bg-red-500 text-white py-3.5 rounded-2xl font-semibold transition-colors">Supprimer</button>
     </div>
   </div>
 </div>
 
 <!-- ══ MODAL : SUPPRIMER PROGRAMME ═══════════════════════ -->
-<div x-show="confirmDeleteProgrammeId !== null" x-cloak class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 flex items-center justify-center px-4">
+<div x-show="confirmDeleteProgrammeId!==null" x-cloak class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 flex items-center justify-center px-4">
   <div class="bg-slate-800 rounded-3xl p-6 w-full max-w-sm border border-slate-700">
     <div class="text-4xl text-center mb-3">🗑️</div>
     <h3 class="font-bold text-white text-xl text-center mb-2">Supprimer le programme ?</h3>
     <p class="text-slate-400 text-sm text-center mb-6">Cette action est irréversible.</p>
     <div class="flex gap-3">
       <button @click="confirmDeleteProgrammeId=null" class="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-300 py-3.5 rounded-2xl font-semibold transition-colors">Annuler</button>
-      <button @click="deleteProgramme(confirmDeleteProgrammeId); confirmDeleteProgrammeId=null" class="flex-1 bg-red-600 hover:bg-red-500 text-white py-3.5 rounded-2xl font-semibold transition-colors">Supprimer</button>
+      <button @click="deleteProgramme(confirmDeleteProgrammeId);confirmDeleteProgrammeId=null" class="flex-1 bg-red-600 hover:bg-red-500 text-white py-3.5 rounded-2xl font-semibold transition-colors">Supprimer</button>
     </div>
   </div>
 </div>
@@ -615,7 +561,7 @@
     <p class="text-slate-400 text-sm text-center mb-6">La séance sera sauvegardée dans ton historique.</p>
     <div class="flex gap-3">
       <button @click="confirmFinish=false" class="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-300 py-3.5 rounded-2xl font-semibold transition-colors">Annuler</button>
-      <button @click="finishSession(); confirmFinish=false" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white py-3.5 rounded-2xl font-semibold transition-colors">Terminer ✓</button>
+      <button @click="finishSession();confirmFinish=false" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white py-3.5 rounded-2xl font-semibold transition-colors">Terminer ✓</button>
     </div>
   </div>
 </div>
@@ -624,20 +570,26 @@
 <script>
 function gymApp() {
   return {
+    // Navigation
     tab: 'accueil',
     loading: false,
-    toast: { show: false, msg: '', error: false },
+    toast: { show:false, msg:'', error:false },
 
     // Session
-    session: null,
-    sessionSeconds: 0,
-    _sessionTimer: null,
+    session: null, sessionSeconds: 0, _sessionTimer: null,
     sessions: [],
 
     // Programmes
     programmes: [],
     programmeView: 'list',
     editingProgramme: null,
+
+    // Exercices
+    exercises: [],
+    editingExercise: null,
+    showExerciseEditor: false,
+    newGroupMode: false,
+    confirmDeleteExerciseId: null,
 
     // UI
     showSessionPicker: false,
@@ -649,263 +601,185 @@ function gymApp() {
 
     // Progression
     selectedExerciseId: '',
-    _progressChart: null,
-    _volumeChart: null,
-    progressStats: { sessions: 0, maxWeight: 0, trend: '—' },
+    _progressChart: null, _volumeChart: null,
+    progressStats: { sessions:0, maxWeight:0, trend:'—' },
 
-    // ── Catalogue ────────────────────────────────────────
-    exerciseGroups: [
-      { name:'Poitrine', emoji:'🫁', exercises:[
-        { id:'dc-plat',    name:'Développé couché haltères (plat)',    group:'Poitrine' },
-        { id:'dc-incline', name:'Développé couché haltères (incliné)', group:'Poitrine' },
-        { id:'ec-plat',    name:'Écarté couché haltères (plat)',       group:'Poitrine' },
-        { id:'pullover',   name:'Pullover haltère',                    group:'Poitrine' },
-      ]},
-      { name:'Dos', emoji:'🔙', exercises:[
-        { id:'rowing-uni', name:'Rowing haltère unilatéral (appui sur banc)', group:'Dos' },
-        { id:'rowing-bi',  name:'Rowing haltère bilatéral',                  group:'Dos' },
-      ]},
-      { name:'Épaules', emoji:'🏔️', exercises:[
-        { id:'dev-mil',  name:'Développé militaire haltères (assis sur banc)',   group:'Épaules' },
-        { id:'elev-lat', name:'Élévations latérales (assis)',                    group:'Épaules' },
-        { id:'oiseau',   name:'Oiseau / Élévations postérieures (assis penché)', group:'Épaules' },
-      ]},
-      { name:'Biceps', emoji:'💪', exercises:[
-        { id:'curl-alt',     name:'Curl haltères alterné',       group:'Biceps' },
-        { id:'curl-marteau', name:'Curl marteau (Hammer curl)',  group:'Biceps' },
-      ]},
-      { name:'Triceps', emoji:'🦾', exercises:[
-        { id:'ext-tri', name:'Extension triceps au-dessus de la tête (bilatéral)', group:'Triceps' },
-        { id:'dips',    name:'Dips sur banc (poids du corps)',                     group:'Triceps' },
-      ]},
-      { name:'Abdominaux', emoji:'🔩', exercises:[
-        { id:'crunch',    name:'Crunch avec haltère',          group:'Abdominaux' },
-        { id:'russian',   name:'Russian twist avec haltère',   group:'Abdominaux' },
-        { id:'side-bend', name:'Side bend (flexion latérale)', group:'Abdominaux' },
-      ]},
-    ],
+    // ── Computed : exerciseGroups ─────────────────────────
+    get exerciseGroups() {
+      const EMOJIS = { Poitrine:'🫁', Dos:'🔙', 'Épaules':'🏔️', Biceps:'💪', Triceps:'🦾', Abdominaux:'🔩' };
+      const map = {};
+      this.exercises.forEach(ex => {
+        if (!map[ex.group]) map[ex.group] = { name:ex.group, emoji:EMOJIS[ex.group]||'🏋️', exercises:[] };
+        map[ex.group].exercises.push(ex);
+      });
+      return Object.values(map).sort((a,b) => a.name.localeCompare(b.name,'fr'));
+    },
 
-    // ── Helpers ──────────────────────────────────────────
+    // ── Computed : groupes existants pour l'éditeur ───────
+    get existingGroups() {
+      return [...new Set(this.exercises.map(e => e.group))].sort((a,b) => a.localeCompare(b,'fr'));
+    },
+
+    // ── Helpers ───────────────────────────────────────────
     groupColor(name) {
-      return { Poitrine:'#f472b6', Dos:'#34d399', 'Épaules':'#60a5fa', Biceps:'#fb923c', Triceps:'#a78bfa', Abdominaux:'#facc15' }[name] || '#94a3b8';
+      const colors = { Poitrine:'#f472b6', Dos:'#34d399', 'Épaules':'#60a5fa', Biceps:'#fb923c', Triceps:'#a78bfa', Abdominaux:'#facc15' };
+      if (colors[name]) return colors[name];
+      const hash = [...(name||'')].reduce((h,c)=>(h*31+c.charCodeAt(0))&0xffffffff,0);
+      return `hsl(${Math.abs(hash)%360},65%,60%)`;
     },
-    groupBadgeStyle(name) {
-      const c = this.groupColor(name);
-      return `background:${c}20;color:${c};`;
-    },
-    get todayStr() {
-      return new Date().toLocaleDateString('fr-FR', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
-    },
+    groupBadgeStyle(name) { const c=this.groupColor(name); return `background:${c}20;color:${c};`; },
+    get todayStr() { return new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'}); },
     get stats() {
-      const total = this.sessions.length;
-      const thisWeek = this.sessions.filter(s => new Date(s.date).getTime() > Date.now()-7*864e5).length;
-      const days = new Set(this.sessions.map(s => new Date(s.date).toDateString()));
+      const total=this.sessions.length;
+      const thisWeek=this.sessions.filter(s=>new Date(s.date).getTime()>Date.now()-7*864e5).length;
+      const days=new Set(this.sessions.map(s=>new Date(s.date).toDateString()));
       let streak=0; const d=new Date(); d.setHours(0,0,0,0);
-      while (days.has(d.toDateString())) { streak++; d.setDate(d.getDate()-1); }
-      return { total, thisWeek, streak };
+      while(days.has(d.toDateString())){streak++;d.setDate(d.getDate()-1);}
+      return {total,thisWeek,streak};
     },
-    totalVolume(session) {
-      let v=0;
-      session.exercises.forEach(ex => ex.sets.forEach(s => { if(s.done) v += s.weight*s.reps; }));
-      return v.toLocaleString('fr-FR');
-    },
-    showToast(msg, error=false) {
-      this.toast = { show:true, msg, error };
-      setTimeout(() => { this.toast.show = false; }, 2500);
-    },
+    totalVolume(s){let v=0;s.exercises.forEach(ex=>ex.sets.forEach(s=>{if(s.done)v+=s.weight*s.reps;}));return v.toLocaleString('fr-FR');},
+    showToast(msg,error=false){this.toast={show:true,msg,error};setTimeout(()=>{this.toast.show=false;},2500);},
 
-    // ── API calls ────────────────────────────────────────
-    async api(method, url, body) {
-      const opts = { method, headers: { 'Content-Type': 'application/json' } };
-      if (body) opts.body = JSON.stringify(body);
-      const res = await fetch(url, opts);
-      if (!res.ok) throw new Error(`Erreur ${res.status}`);
+    // ── API ───────────────────────────────────────────────
+    async api(method,url,body){
+      const opts={method,headers:{'Content-Type':'application/json'}};
+      if(body)opts.body=JSON.stringify(body);
+      const res=await fetch(url,opts);
+      if(!res.ok)throw new Error(`Erreur ${res.status}`);
       return res.json();
     },
 
     // ── Init ─────────────────────────────────────────────
-    async init() {
-      this.loading = true;
-      try {
-        const [sessions, programmes] = await Promise.all([
-          this.api('GET', '/api/sessions'),
-          this.api('GET', '/api/programmes'),
+    async init(){
+      this.loading=true;
+      try{
+        const [sessions,programmes,exercises]=await Promise.all([
+          this.api('GET','/api/sessions'),
+          this.api('GET','/api/programmes'),
+          this.api('GET','/api/exercises'),
         ]);
-        this.sessions   = sessions;
-        this.programmes = programmes;
-      } catch(e) {
-        this.showToast('Impossible de charger les données', true);
-      } finally {
-        this.loading = false;
-      }
+        this.sessions=sessions; this.programmes=programmes; this.exercises=exercises;
+      }catch(e){this.showToast('Impossible de charger les données',true);}
+      finally{this.loading=false;}
     },
 
-    // ── Session ──────────────────────────────────────────
-    openSessionPicker() {
-      if (this.programmes.length === 0) {
-        this.startSession(null);
-      } else {
-        this.showSessionPicker = true;
-      }
-    },
-
-    startSession(programme) {
-      if (this.session) return;
-      let exercises = [], programmeName = null;
-      if (programme) {
-        programmeName = programme.name;
-        exercises = programme.exercises.map(ex => ({
-          id: ex.id, name: ex.name, group: ex.group,
-          sets: Array.from({ length: ex.sets }, () => ({ reps: ex.reps, weight: ex.weight, done: false }))
+    // ── Session ───────────────────────────────────────────
+    openSessionPicker(){this.programmes.length===0?this.startSession(null):this.showSessionPicker=true;},
+    startSession(programme){
+      if(this.session)return;
+      let exercises=[],programmeName=null;
+      if(programme){
+        programmeName=programme.name;
+        exercises=programme.exercises.map(ex=>({
+          id:ex.id,name:ex.name,group:ex.group,
+          sets:Array.from({length:ex.sets},()=>({reps:ex.reps,weight:ex.weight,done:false}))
         }));
       }
-      this.session = { id: Date.now().toString(), date: new Date().toISOString(), programmeName, exercises };
-      this.sessionSeconds = 0;
-      this._sessionTimer = setInterval(() => this.sessionSeconds++, 1000);
-      this.tab = 'seance';
+      this.session={id:Date.now().toString(),date:new Date().toISOString(),programmeName,exercises};
+      this.sessionSeconds=0;
+      this._sessionTimer=setInterval(()=>this.sessionSeconds++,1000);
+      this.tab='seance';
     },
-
-    async finishSession() {
+    async finishSession(){
       clearInterval(this._sessionTimer);
-      this.session.duration = this.sessionSeconds;
-      const saved = JSON.parse(JSON.stringify(this.session));
-      try {
-        await this.api('POST', '/api/sessions', saved);
-        this.sessions.unshift(saved);
-        this.showToast('Séance sauvegardée ✓');
-      } catch(e) {
-        this.showToast('Erreur lors de la sauvegarde', true);
-      }
-      this.session = null;
-      this.sessionSeconds = 0;
-      this.tab = 'historique';
+      this.session.duration=this.sessionSeconds;
+      const saved=JSON.parse(JSON.stringify(this.session));
+      try{await this.api('POST','/api/sessions',saved);this.sessions.unshift(saved);this.showToast('Séance sauvegardée ✓');}
+      catch(e){this.showToast('Erreur lors de la sauvegarde',true);}
+      this.session=null;this.sessionSeconds=0;this.tab='historique';
     },
-
-    async deleteSession(id) {
-      try {
-        await this.api('DELETE', `/api/sessions/${id}`);
-        this.sessions = this.sessions.filter(s => s.id !== id);
-        if (this.expandedSession === id) this.expandedSession = null;
-        this.showToast('Séance supprimée');
-      } catch(e) {
-        this.showToast('Erreur lors de la suppression', true);
-      }
+    async deleteSession(id){
+      try{await this.api('DELETE',`/api/sessions/${id}`);this.sessions=this.sessions.filter(s=>s.id!==id);if(this.expandedSession===id)this.expandedSession=null;this.showToast('Séance supprimée');}
+      catch(e){this.showToast('Erreur lors de la suppression',true);}
     },
 
     // ── Exercise picker ───────────────────────────────────
-    isExerciseAlreadyPicked(ex) {
-      if (this.showExercisePicker === 'session')   return !!this.session?.exercises.find(e => e.id === ex.id);
-      if (this.showExercisePicker === 'programme') return !!this.editingProgramme?.exercises.find(e => e.id === ex.id);
+    isExerciseAlreadyPicked(ex){
+      if(this.showExercisePicker==='session')   return !!this.session?.exercises.find(e=>e.id===ex.id);
+      if(this.showExercisePicker==='programme') return !!this.editingProgramme?.exercises.find(e=>e.id===ex.id);
       return false;
     },
-    pickExercise(ex) {
-      if (this.showExercisePicker === 'session' && this.session) {
-        if (!this.session.exercises.find(e => e.id === ex.id))
-          this.session.exercises.push({ ...ex, sets: [{ reps:10, weight:20, done:false }] });
-        this.showExercisePicker = false;
-      } else if (this.showExercisePicker === 'programme' && this.editingProgramme) {
-        if (!this.editingProgramme.exercises.find(e => e.id === ex.id))
-          this.editingProgramme.exercises.push({ ...ex, sets:3, reps:10, weight:20 });
-        this.showExercisePicker = false;
+    pickExercise(ex){
+      if(this.showExercisePicker==='session'&&this.session){
+        if(!this.session.exercises.find(e=>e.id===ex.id)) this.session.exercises.push({...ex,sets:[{reps:10,weight:20,done:false}]});
+        this.showExercisePicker=false;
+      }else if(this.showExercisePicker==='programme'&&this.editingProgramme){
+        if(!this.editingProgramme.exercises.find(e=>e.id===ex.id)) this.editingProgramme.exercises.push({...ex,sets:3,reps:10,weight:20});
+        this.showExercisePicker=false;
       }
     },
 
-    // ── Programmes ───────────────────────────────────────
-    startNewProgramme() {
-      this.editingProgramme = { id: null, name: '', exercises: [] };
-      this.programmeView = 'editor';
+    // ── Programmes ────────────────────────────────────────
+    startNewProgramme(){this.editingProgramme={id:null,name:'',exercises:[]};this.programmeView='editor';},
+    editProgramme(prog){this.editingProgramme=JSON.parse(JSON.stringify(prog));this.programmeView='editor';},
+    async saveProgramme(){
+      if(!this.editingProgramme.name.trim()){this.showToast('Donne un nom au programme !',true);return;}
+      if(!this.editingProgramme.id)this.editingProgramme.id=Date.now().toString();
+      const prog=JSON.parse(JSON.stringify(this.editingProgramme));
+      try{
+        await this.api('POST','/api/programmes',prog);
+        const idx=this.programmes.findIndex(p=>p.id===prog.id);
+        if(idx!==-1)this.programmes[idx]=prog;else this.programmes.push(prog);
+        this.showToast('Programme sauvegardé ✓');this.programmeView='list';this.editingProgramme=null;
+      }catch(e){this.showToast('Erreur lors de la sauvegarde',true);}
     },
-    editProgramme(prog) {
-      this.editingProgramme = JSON.parse(JSON.stringify(prog));
-      this.programmeView = 'editor';
-    },
-    async saveProgramme() {
-      if (!this.editingProgramme.name.trim()) {
-        this.showToast('Donne un nom au programme !', true);
-        return;
-      }
-      if (!this.editingProgramme.id) this.editingProgramme.id = Date.now().toString();
-      const prog = JSON.parse(JSON.stringify(this.editingProgramme));
-      try {
-        await this.api('POST', '/api/programmes', prog);
-        const idx = this.programmes.findIndex(p => p.id === prog.id);
-        if (idx !== -1) this.programmes[idx] = prog;
-        else this.programmes.push(prog);
-        this.showToast('Programme sauvegardé ✓');
-        this.programmeView = 'list';
-        this.editingProgramme = null;
-      } catch(e) {
-        this.showToast('Erreur lors de la sauvegarde', true);
-      }
-    },
-    cancelProgrammeEdit() {
-      this.programmeView = 'list';
-      this.editingProgramme = null;
-    },
-    async deleteProgramme(id) {
-      try {
-        await this.api('DELETE', `/api/programmes/${id}`);
-        this.programmes = this.programmes.filter(p => p.id !== id);
-        this.showToast('Programme supprimé');
-      } catch(e) {
-        this.showToast('Erreur lors de la suppression', true);
-      }
+    cancelProgrammeEdit(){this.programmeView='list';this.editingProgramme=null;},
+    async deleteProgramme(id){
+      try{await this.api('DELETE',`/api/programmes/${id}`);this.programmes=this.programmes.filter(p=>p.id!==id);this.showToast('Programme supprimé');}
+      catch(e){this.showToast('Erreur lors de la suppression',true);}
     },
 
-    // ── Formats ──────────────────────────────────────────
-    formatDuration(secs) {
-      if (!secs && secs !== 0) return '—';
-      const h=Math.floor(secs/3600), m=Math.floor((secs%3600)/60), s=secs%60;
-      return h>0 ? `${h}h${String(m).padStart(2,'0')}` : `${m}:${String(s).padStart(2,'0')}`;
+    // ── Exercices ─────────────────────────────────────────
+    startNewExercise(){
+      this.editingExercise={id:null,name:'',group:this.existingGroups[0]||''};
+      this.newGroupMode=false;
+      this.showExerciseEditor=true;
     },
-    formatDate(iso) { return new Date(iso).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'}); },
-    formatTime(iso) { return new Date(iso).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}); },
+    startEditExercise(ex){
+      this.editingExercise=JSON.parse(JSON.stringify(ex));
+      this.newGroupMode=false;
+      this.showExerciseEditor=true;
+    },
+    async saveExercise(){
+      if(!this.editingExercise.name.trim()){this.showToast("Donne un nom à l'exercice !",true);return;}
+      if(!this.editingExercise.group.trim()){this.showToast('Choisis un groupe musculaire !',true);return;}
+      if(!this.editingExercise.id)this.editingExercise.id='custom-'+Date.now();
+      const ex=JSON.parse(JSON.stringify(this.editingExercise));
+      try{
+        await this.api('POST','/api/exercises',ex);
+        const idx=this.exercises.findIndex(e=>e.id===ex.id);
+        if(idx!==-1)this.exercises[idx]=ex;else this.exercises.push(ex);
+        this.showToast('Exercice sauvegardé ✓');this.showExerciseEditor=false;this.editingExercise=null;
+      }catch(e){this.showToast('Erreur lors de la sauvegarde',true);}
+    },
+    async deleteExercise(id){
+      try{await this.api('DELETE',`/api/exercises/${id}`);this.exercises=this.exercises.filter(e=>e.id!==id);this.showToast('Exercice supprimé');}
+      catch(e){this.showToast('Erreur lors de la suppression',true);}
+    },
 
-    // ── Charts ───────────────────────────────────────────
-    renderProgressChart() {
-      if (!this.selectedExerciseId) return;
-      const weightData=[], volumeData=[];
-      [...this.sessions].reverse().forEach(s => {
-        const ex = s.exercises.find(e => e.id === this.selectedExerciseId);
-        if (ex) {
-          const done = ex.sets.filter(s => s.done);
-          if (done.length > 0) {
-            const label = new Date(s.date).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit'});
-            weightData.push({ x:label, y:Math.max(...done.map(s=>s.weight)) });
-            volumeData.push({ x:label, y:done.reduce((sum,s)=>sum+s.weight*s.reps,0) });
-          }
-        }
+    // ── Formats ───────────────────────────────────────────
+    formatDuration(secs){if(!secs&&secs!==0)return'—';const h=Math.floor(secs/3600),m=Math.floor((secs%3600)/60),s=secs%60;return h>0?`${h}h${String(m).padStart(2,'0')}`:`${m}:${String(s).padStart(2,'0')}`;},
+    formatDate(iso){return new Date(iso).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});},
+    formatTime(iso){return new Date(iso).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});},
+
+    // ── Charts ────────────────────────────────────────────
+    renderProgressChart(){
+      if(!this.selectedExerciseId)return;
+      const wD=[],vD=[];
+      [...this.sessions].reverse().forEach(s=>{
+        const ex=s.exercises.find(e=>e.id===this.selectedExerciseId);
+        if(ex){const done=ex.sets.filter(s=>s.done);if(done.length>0){const label=new Date(s.date).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit'});wD.push({x:label,y:Math.max(...done.map(s=>s.weight))});vD.push({x:label,y:done.reduce((sum,s)=>sum+s.weight*s.reps,0)});}}
       });
-      if (weightData.length > 0) {
-        const first=weightData[0].y, last=weightData[weightData.length-1].y;
-        this.progressStats = {
-          sessions: weightData.length,
-          maxWeight: Math.max(...weightData.map(d=>d.y)),
-          trend: weightData.length<2 ? '—' : last>first ? '📈' : last<first ? '📉' : '➡️'
-        };
-      } else {
-        this.progressStats = { sessions:0, maxWeight:0, trend:'—' };
-        return;
-      }
-      const scales = {
-        x: { ticks:{color:'#94a3b8',font:{size:11}}, grid:{color:'#1e293b'} },
-        y: { ticks:{color:'#94a3b8',font:{size:11}}, grid:{color:'#1e293b'} }
-      };
-      this.$nextTick(() => {
-        if (this._progressChart) this._progressChart.destroy();
-        const c1 = document.getElementById('progressChart');
-        if (c1) this._progressChart = new Chart(c1, {
-          type:'line',
-          data:{ labels:weightData.map(d=>d.x), datasets:[{ data:weightData.map(d=>d.y), borderColor:'#60a5fa', backgroundColor:'rgba(96,165,250,0.1)', borderWidth:2.5, pointBackgroundColor:'#60a5fa', pointRadius:5, fill:true, tension:0.35 }] },
-          options:{ responsive:true, plugins:{legend:{display:false}}, scales }
-        });
-        if (this._volumeChart) this._volumeChart.destroy();
-        const c2 = document.getElementById('volumeChart');
-        if (c2) this._volumeChart = new Chart(c2, {
-          type:'bar',
-          data:{ labels:volumeData.map(d=>d.x), datasets:[{ data:volumeData.map(d=>d.y), backgroundColor:'rgba(167,139,250,0.7)', borderColor:'#a78bfa', borderWidth:2, borderRadius:6 }] },
-          options:{ responsive:true, plugins:{legend:{display:false}}, scales }
-        });
+      if(wD.length>0){const first=wD[0].y,last=wD[wD.length-1].y;this.progressStats={sessions:wD.length,maxWeight:Math.max(...wD.map(d=>d.y)),trend:wD.length<2?'—':last>first?'📈':last<first?'📉':'➡️'};}
+      else{this.progressStats={sessions:0,maxWeight:0,trend:'—'};return;}
+      const scales={x:{ticks:{color:'#94a3b8',font:{size:11}},grid:{color:'#1e293b'}},y:{ticks:{color:'#94a3b8',font:{size:11}},grid:{color:'#1e293b'}}};
+      this.$nextTick(()=>{
+        if(this._progressChart)this._progressChart.destroy();
+        const c1=document.getElementById('progressChart');
+        if(c1)this._progressChart=new Chart(c1,{type:'line',data:{labels:wD.map(d=>d.x),datasets:[{data:wD.map(d=>d.y),borderColor:'#60a5fa',backgroundColor:'rgba(96,165,250,0.1)',borderWidth:2.5,pointBackgroundColor:'#60a5fa',pointRadius:5,fill:true,tension:0.35}]},options:{responsive:true,plugins:{legend:{display:false}},scales}});
+        if(this._volumeChart)this._volumeChart.destroy();
+        const c2=document.getElementById('volumeChart');
+        if(c2)this._volumeChart=new Chart(c2,{type:'bar',data:{labels:vD.map(d=>d.x),datasets:[{data:vD.map(d=>d.y),backgroundColor:'rgba(167,139,250,0.7)',borderColor:'#a78bfa',borderWidth:2,borderRadius:6}]},options:{responsive:true,plugins:{legend:{display:false}},scales}});
       });
     }
   };
@@ -914,11 +788,11 @@ function gymApp() {
 
 <!-- ══ SERVICE WORKER (PWA) ══════════════════════════════ -->
 <script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
+  if('serviceWorker' in navigator){
+    window.addEventListener('load',()=>{
       navigator.serviceWorker.register('/sw.js')
-        .then(() => console.log('✅ Service Worker enregistré'))
-        .catch(e => console.warn('SW non enregistré :', e));
+        .then(()=>console.log('✅ SW enregistré'))
+        .catch(e=>console.warn('SW erreur:',e));
     });
   }
 </script>
