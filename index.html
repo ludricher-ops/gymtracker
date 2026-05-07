@@ -758,10 +758,11 @@ function gymApp() {
       let exercises=[],programmeName=null;
       if(programme){
         programmeName=programme.name;
-        exercises=programme.exercises.map(ex=>({
-          id:ex.id,name:ex.name,group:ex.group,
-          sets:Array.from({length:ex.sets},()=>({reps:ex.reps,weight:ex.weight,done:false}))
-        }));
+        exercises=programme.exercises.map(ex=>{
+          const full=this.exercises.find(e=>e.id===ex.id)||ex;
+          return {id:ex.id,name:ex.name,group:ex.group,imageUrl:full.imageUrl||'',
+            sets:Array.from({length:ex.sets},()=>({reps:ex.reps,weight:ex.weight,done:false}))};
+        });
       }
       this.session={id:Date.now().toString(),date:new Date().toISOString(),programmeName,exercises};
       this.sessionSeconds=0;
