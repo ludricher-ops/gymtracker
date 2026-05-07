@@ -96,6 +96,10 @@ async function addSession(s) {
   if (pool) await pool.query('INSERT INTO sessions(id,data) VALUES($1,$2)', [s.id,s]);
   else { const d=readJSON(); d.sessions.unshift(s); writeJSON(d); }
 }
+async function updateSession(id, s) {
+  if (pool) await pool.query('UPDATE sessions SET data=$1 WHERE id=$2',[s,id]);
+  else { const d=readJSON(); const i=d.sessions.findIndex(x=>x.id===id); if(i!==-1)d.sessions[i]=s; writeJSON(d); }
+}
 async function removeSession(id) {
   if (pool) await pool.query('DELETE FROM sessions WHERE id=$1',[id]);
   else { const d=readJSON(); d.sessions=d.sessions.filter(s=>s.id!==id); writeJSON(d); }
@@ -133,8 +137,9 @@ async function removeExercise(id) {
 const h = fn => async (req,res) => { try { await fn(req,res); } catch(e) { res.status(500).json({error:e.message}); } };
 
 app.get   ('/api/sessions',        h(async(req,res) => res.json(await getSessions())));
-app.post  ('/api/sessions',        h(async(req,res) => { await addSession(req.body);         res.json({ok:true}); }));
-app.delete('/api/sessions/:id',    h(async(req,res) => { await removeSession(req.params.id); res.json({ok:true}); }));
+app.post  ('/api/sessions',        h(async(req,res) => { await addSession(req.body);                       res.json({ok:true}); }));
+app.put   ('/api/sessions/:id',    h(async(req,res) => { await updateSession(req.params.id, req.body);     res.json({ok:true}); }));
+app.delete('/api/sessions/:id',    h(async(req,res) => { await removeSession(req.params.id);               res.json({ok:true}); }));
 
 app.get   ('/api/programmes',      h(async(req,res) => res.json(await getProgrammes())));
 app.post  ('/api/programmes',      h(async(req,res) => { await upsertProgramme(req.body);      res.json({ok:true}); }));

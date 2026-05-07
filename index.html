@@ -415,8 +415,11 @@
                 <span x-text="totalVolume(s)+' kg'"></span>
               </div>
             </div>
-            <div class="flex items-center gap-2 ml-2">
-              <span class="text-xs text-slate-500" x-text="formatTime(s.date)"></span>
+            <div class="flex items-center gap-1.5 ml-2">
+              <span class="text-xs text-slate-500 mr-1" x-text="formatTime(s.date)"></span>
+              <button @click.stop="startEditSession(s)" class="p-1.5 rounded-lg text-slate-600 hover:text-blue-400 hover:bg-blue-400/10 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+              </button>
               <button @click.stop="confirmDeleteId=s.id" class="p-1.5 rounded-lg text-slate-600 hover:text-red-400 hover:bg-red-400/10 transition-colors">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
               </button>
@@ -437,6 +440,74 @@
           </div>
         </div>
       </template>
+    </div>
+  </div>
+
+  <!-- ── Vue Éditeur de séance ── -->
+  <div x-show="historiqueView==='editSession'" x-cloak>
+    <div class="sticky top-0 z-10 bg-slate-900/95 backdrop-blur border-b border-slate-700 px-4 py-3 flex items-center justify-between">
+      <button @click="cancelEditSession()" class="text-slate-400 hover:text-white p-1 transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+      </button>
+      <div class="text-center">
+        <div class="font-bold text-white text-sm" x-text="editingSession ? formatDate(editingSession.date) : ''"></div>
+        <div class="text-xs text-slate-400" x-text="editingSession?.programmeName ? '📋 '+editingSession.programmeName : 'Séance libre'"></div>
+      </div>
+      <button @click="saveEditedSession()" class="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-4 py-1.5 rounded-xl text-sm transition-colors">Sauvegarder</button>
+    </div>
+
+    <div class="px-4 pt-4" x-show="editingSession">
+      <template x-for="(exercise, exIdx) in editingSession.exercises" :key="exercise.id+exIdx">
+        <div class="bg-slate-800 rounded-2xl mb-4 overflow-hidden border border-slate-700/50">
+          <!-- Image -->
+          <template x-if="exercise.imageUrl">
+            <div class="w-full h-36 bg-slate-900 overflow-hidden flex items-center justify-center">
+              <img :src="exercise.imageUrl" :alt="exercise.name" class="max-w-full max-h-full object-contain" loading="lazy">
+            </div>
+          </template>
+          <!-- En-tête exercice -->
+          <div class="px-4 py-3 flex items-center justify-between border-b border-slate-700">
+            <div>
+              <div class="text-sm font-semibold text-white leading-tight" x-text="exercise.name"></div>
+              <div class="text-xs mt-0.5 font-medium" :style="`color:${groupColor(exercise.group)}`" x-text="exercise.group"></div>
+            </div>
+            <button @click="editingSession.exercises.splice(exIdx,1)" class="text-slate-600 hover:text-red-400 p-1.5 rounded-lg hover:bg-red-400/10 transition-colors">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+          </div>
+          <!-- Colonnes -->
+          <div class="grid grid-cols-12 px-4 py-2 text-xs font-medium text-slate-500">
+            <div class="col-span-1">#</div><div class="col-span-5 text-center">Poids (kg)</div><div class="col-span-4 text-center">Reps</div><div class="col-span-2 text-center">✓</div>
+          </div>
+          <!-- Séries -->
+          <template x-for="(set, setIdx) in exercise.sets" :key="setIdx">
+            <div class="grid grid-cols-12 items-center px-4 py-2 gap-1" :class="set.done?'bg-emerald-950/40':''">
+              <div class="col-span-1 text-slate-500 text-sm font-mono" x-text="setIdx+1"></div>
+              <div class="col-span-5"><div class="flex items-center bg-slate-700 rounded-xl overflow-hidden">
+                <button @click="set.weight=Math.max(0,parseFloat((set.weight-2.5).toFixed(1)))" class="px-2.5 py-2 text-slate-400 hover:text-white hover:bg-slate-600 text-base font-bold leading-none transition-colors select-none">−</button>
+                <input type="number" x-model.number="set.weight" step="2.5" min="0" class="flex-1 bg-transparent text-center text-white text-sm font-semibold focus:outline-none w-0 min-w-0">
+                <button @click="set.weight=parseFloat((set.weight+2.5).toFixed(1))" class="px-2.5 py-2 text-slate-400 hover:text-white hover:bg-slate-600 text-base font-bold leading-none transition-colors select-none">+</button>
+              </div></div>
+              <div class="col-span-4"><div class="flex items-center bg-slate-700 rounded-xl overflow-hidden">
+                <button @click="set.reps=Math.max(1,set.reps-1)" class="px-2.5 py-2 text-slate-400 hover:text-white hover:bg-slate-600 text-base font-bold leading-none transition-colors select-none">−</button>
+                <input type="number" x-model.number="set.reps" min="1" class="flex-1 bg-transparent text-center text-white text-sm font-semibold focus:outline-none w-0 min-w-0">
+                <button @click="set.reps++" class="px-2.5 py-2 text-slate-400 hover:text-white hover:bg-slate-600 text-base font-bold leading-none transition-colors select-none">+</button>
+              </div></div>
+              <div class="col-span-2 flex justify-center">
+                <button @click="set.done=!set.done" :class="set.done?'bg-emerald-500 text-white':'bg-slate-700 text-slate-500 hover:bg-slate-600'" class="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold transition-all active:scale-90">✓</button>
+              </div>
+            </div>
+          </template>
+          <!-- Ajouter une série -->
+          <div class="px-4 py-3 border-t border-slate-700">
+            <button @click="exercise.sets.push({reps:exercise.sets.at(-1)?.reps??10,weight:exercise.sets.at(-1)?.weight??20,done:false})"
+              class="w-full text-center text-blue-400 hover:text-blue-300 text-sm py-1 transition-colors">+ Ajouter une série</button>
+          </div>
+        </div>
+      </template>
+
+      <!-- Ajouter un exercice -->
+      <button @click="showExercisePicker='editSession'" class="w-full border-2 border-dashed border-slate-700 hover:border-blue-500/50 text-slate-500 hover:text-blue-400 font-medium py-4 rounded-2xl text-sm transition-all mb-6">+ Ajouter un exercice</button>
     </div>
   </div>
 
@@ -777,6 +848,7 @@ function gymApp() {
 
     // Historique
     historiqueView: 'liste',
+    editingSession: null,
 
     // Calendrier
     calendarYear: new Date().getFullYear(),
@@ -928,6 +1000,23 @@ function gymApp() {
       catch(e){this.showToast('Erreur lors de la sauvegarde',true);}
       this.session=null;this.sessionSeconds=0;this.tab='historique';
     },
+    startEditSession(s){
+      this.editingSession=JSON.parse(JSON.stringify(s));
+      this.historiqueView='editSession';
+    },
+    cancelEditSession(){
+      this.editingSession=null;
+      this.historiqueView='liste';
+    },
+    async saveEditedSession(){
+      try{
+        await this.api('PUT',`/api/sessions/${this.editingSession.id}`,this.editingSession);
+        const idx=this.sessions.findIndex(s=>s.id===this.editingSession.id);
+        if(idx!==-1)this.sessions[idx]=JSON.parse(JSON.stringify(this.editingSession));
+        this.showToast('Séance modifiée ✓');
+        this.cancelEditSession();
+      }catch(e){this.showToast('Erreur lors de la sauvegarde',true);}
+    },
     async deleteSession(id){
       try{await this.api('DELETE',`/api/sessions/${id}`);this.sessions=this.sessions.filter(s=>s.id!==id);if(this.expandedSession===id)this.expandedSession=null;this.showToast('Séance supprimée');}
       catch(e){this.showToast('Erreur lors de la suppression',true);}
@@ -935,8 +1024,9 @@ function gymApp() {
 
     // ── Exercise picker ───────────────────────────────────
     isExerciseAlreadyPicked(ex){
-      if(this.showExercisePicker==='session')   return !!this.session?.exercises.find(e=>e.id===ex.id);
-      if(this.showExercisePicker==='programme') return !!this.editingProgramme?.exercises.find(e=>e.id===ex.id);
+      if(this.showExercisePicker==='session')     return !!this.session?.exercises.find(e=>e.id===ex.id);
+      if(this.showExercisePicker==='programme')   return !!this.editingProgramme?.exercises.find(e=>e.id===ex.id);
+      if(this.showExercisePicker==='editSession') return !!this.editingSession?.exercises.find(e=>e.id===ex.id);
       return false;
     },
     pickExercise(ex){
@@ -945,6 +1035,9 @@ function gymApp() {
         this.showExercisePicker=false;
       }else if(this.showExercisePicker==='programme'&&this.editingProgramme){
         if(!this.editingProgramme.exercises.find(e=>e.id===ex.id)) this.editingProgramme.exercises.push({...ex,sets:3,reps:10,weight:20});
+        this.showExercisePicker=false;
+      }else if(this.showExercisePicker==='editSession'&&this.editingSession){
+        if(!this.editingSession.exercises.find(e=>e.id===ex.id)) this.editingSession.exercises.push({...ex,sets:[{reps:10,weight:20,done:false}]});
         this.showExercisePicker=false;
       }
     },
