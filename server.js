@@ -30,6 +30,23 @@ const DEFAULT_EXERCISES = [
 ];
 
 // ══════════════════════════════════════════════════════════
+//  HELPERS JSON (local) — déclarés AVANT l'init de la DB
+// ══════════════════════════════════════════════════════════
+const DATA_FILE = __dirname + '/data.json';
+
+function readJSON() {
+  try {
+    if (!fs.existsSync(DATA_FILE)) return { sessions:[], programmes:[], exercises:[] };
+    const d = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+    if (!d.exercises) d.exercises = [];
+    return d;
+  } catch(e) { return { sessions:[], programmes:[], exercises:[] }; }
+}
+function writeJSON(d) {
+  fs.writeFileSync(DATA_FILE, JSON.stringify(d, null, 2), 'utf8');
+}
+
+// ══════════════════════════════════════════════════════════
 //  BASE DE DONNÉES
 // ══════════════════════════════════════════════════════════
 let pool = null;
@@ -38,11 +55,9 @@ if (process.env.DATABASE_URL) {
   const { Pool } = require('pg');
   pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } });
 
-  pool.query(`
-    CREATE TABLE IF NOT EXISTS sessions   (id TEXT PRIMARY KEY, data JSONB NOT NULL);
-    CREATE TABLE IF NOT EXISTS programmes (id TEXT PRIMARY KEY, data JSONB NOT NULL);
-    CREATE TABLE IF NOT EXISTS exercises  (id TEXT PRIMARY KEY, data JSONB NOT NULL);
-  `)
+  pool.query('CREATE TABLE IF NOT EXISTS sessions   (id TEXT PRIMARY KEY, data JSONB NOT NULL)')
+  .then(() => pool.query('CREATE TABLE IF NOT EXISTS programmes (id TEXT PRIMARY KEY, data JSONB NOT NULL)'))
+  .then(() => pool.query('CREATE TABLE IF NOT EXISTS exercises  (id TEXT PRIMARY KEY, data JSONB NOT NULL)'))
   .then(() => seedExercises())
   .then(() => console.log('✅ PostgreSQL prêt'))
   .catch(e  => console.error('❌ DB :', e.message));
@@ -70,22 +85,9 @@ async function seedExercises() {
   }
 }
 
-// ── Helpers JSON (local) ──────────────────────────────────
-const DATA_FILE = __dirname + '/data.json';
-
-function readJSON() {
-  try {
-    if (!fs.existsSync(DATA_FILE)) return { sessions:[], programmes:[], exercises:[] };
-    const d = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
-    if (!d.exercises) d.exercises = [];
-    return d;
-  } catch(e) { return { sessions:[], programmes:[], exercises:[] }; }
-}
-function writeJSON(d) {
-  fs.writeFileSync(DATA_FILE, JSON.stringify(d, null, 2), 'utf8');
-}
-
-// ── DB helpers ────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════
+//  DB HELPERS
+// ══════════════════════════════════════════════════════════
 async function getSessions() {
   if (pool) { const {rows}=await pool.query("SELECT data FROM sessions ORDER BY (data->>'date') DESC"); return rows.map(r=>r.data); }
   return readJSON().sessions;
