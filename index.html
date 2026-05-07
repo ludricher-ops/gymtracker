@@ -120,8 +120,8 @@
         <div class="bg-slate-800 rounded-2xl mb-4 overflow-hidden border border-slate-700/50">
           <!-- Image si disponible -->
           <template x-if="exercise.imageUrl">
-            <div class="w-full h-40 bg-slate-900 overflow-hidden">
-              <img :src="exercise.imageUrl" :alt="exercise.name" class="w-full h-full object-cover" loading="lazy">
+            <div class="w-full h-40 bg-slate-900 overflow-hidden flex items-center justify-center">
+              <img :src="exercise.imageUrl" :alt="exercise.name" class="max-w-full max-h-full object-contain" loading="lazy">
             </div>
           </template>
           <div class="px-4 py-3 flex items-center justify-between border-b border-slate-700">
@@ -306,8 +306,8 @@
             <div class="bg-slate-800 rounded-2xl mb-2 overflow-hidden border border-slate-700/50">
               <!-- Image de l'exercice -->
               <template x-if="ex.imageUrl">
-                <div class="w-full h-40 bg-slate-900 overflow-hidden">
-                  <img :src="ex.imageUrl" :alt="ex.name" class="w-full h-full object-cover" loading="lazy">
+                <div class="w-full h-40 bg-slate-900 overflow-hidden flex items-center justify-center">
+                  <img :src="ex.imageUrl" :alt="ex.name" class="max-w-full max-h-full object-contain" loading="lazy">
                 </div>
               </template>
               <div class="px-4 py-3 flex items-center justify-between">
