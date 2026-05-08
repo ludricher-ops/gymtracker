@@ -241,13 +241,23 @@
     </template>
     <div class="px-4">
       <template x-for="catGroup in programmesByCategory" :key="catGroup.id">
-        <div class="mb-5">
-          <!-- En-tête catégorie -->
-          <div class="flex items-center gap-2 mb-2 px-1">
-            <span x-text="catGroup.emoji" class="text-base"></span>
-            <span class="text-xs font-bold uppercase tracking-wider" :style="`color:${catGroup.color}`" x-text="catGroup.name"></span>
-            <span class="text-slate-600 text-xs font-normal" x-text="'('+catGroup.programmes.length+')'"></span>
+        <div class="mb-3">
+          <!-- En-tête catégorie cliquable -->
+          <div class="flex items-center justify-between px-1 py-2 cursor-pointer select-none rounded-xl hover:bg-slate-800/50 transition-colors mb-1"
+               @click="expandedCategories={...expandedCategories,[catGroup.id]:!(expandedCategories[catGroup.id]!==false)}">
+            <div class="flex items-center gap-2">
+              <span x-text="catGroup.emoji" class="text-base"></span>
+              <span class="text-xs font-bold uppercase tracking-wider" :style="`color:${catGroup.color}`" x-text="catGroup.name"></span>
+              <span class="text-slate-600 text-xs font-normal" x-text="'('+catGroup.programmes.length+')'"></span>
+            </div>
+            <svg class="w-4 h-4 text-slate-500 transition-transform"
+                 :class="expandedCategories[catGroup.id]===false?'-rotate-90':''"
+                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
           </div>
+          <template x-if="expandedCategories[catGroup.id]!==false">
+          <div>
           <template x-for="prog in catGroup.programmes" :key="prog.id">
             <div class="bg-slate-800 rounded-2xl mb-3 border border-slate-700/50 overflow-hidden">
               <!-- En-tête cliquable -->
@@ -286,6 +296,8 @@
                 </template>
               </div>
             </div>
+          </template>
+          </div>
           </template>
         </div>
       </template>
@@ -880,6 +892,7 @@ function gymApp() {
     programmeView: 'list',
     editingProgramme: null,
     expandedProgrammes: {},
+    expandedCategories: {},
     categories: [
       { id:'masse',     name:'Prendre de la masse', emoji:'🏋️', color:'#fb923c' },
       { id:'collectif', name:'Sport collectif',      emoji:'⚽', color:'#34d399' },
