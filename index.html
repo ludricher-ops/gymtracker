@@ -120,25 +120,31 @@
         </div>
       </button>
 
-      <!-- Programmes -->
+      <!-- Programmes groupés par catégorie -->
       <template x-if="programmes.length>0">
         <div>
-          <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 mt-5 px-1">Mes programmes</div>
-          <template x-for="prog in programmes" :key="prog.id">
-            <button @click="startSession(prog)" class="w-full text-left px-4 py-4 bg-slate-800 hover:bg-slate-700 active:scale-[0.98] rounded-2xl mb-3 transition-all border border-slate-700/50">
-              <div class="flex items-center gap-3 mb-2">
-                <div class="w-11 h-11 bg-violet-600/20 rounded-xl flex items-center justify-center text-xl flex-shrink-0">📋</div>
-                <div>
-                  <div class="font-semibold text-white" x-text="prog.name"></div>
-                  <div class="text-xs text-slate-400" x-text="prog.exercises.length+' exercice(s)'"></div>
-                </div>
+          <template x-for="catGroup in programmesByCategory" :key="catGroup.id">
+            <div class="mb-2">
+              <div class="text-xs font-bold uppercase tracking-wider mb-2 mt-4 px-1 flex items-center gap-1.5" :style="`color:${catGroup.color}`">
+                <span x-text="catGroup.emoji"></span><span x-text="catGroup.name"></span>
               </div>
-              <div class="flex flex-wrap gap-1.5 pl-14">
-                <template x-for="ex in prog.exercises" :key="ex.id">
-                  <span class="text-xs px-2 py-0.5 rounded-full" :style="groupBadgeStyle(ex.group)" x-text="ex.group"></span>
-                </template>
-              </div>
-            </button>
+              <template x-for="prog in catGroup.programmes" :key="prog.id">
+                <button @click="startSession(prog)" class="w-full text-left px-4 py-3.5 bg-slate-800 hover:bg-slate-700 active:scale-[0.98] rounded-2xl mb-2 transition-all border border-slate-700/50">
+                  <div class="flex items-center gap-3 mb-2">
+                    <div class="w-11 h-11 rounded-xl flex items-center justify-center text-xl flex-shrink-0" :style="`background:${categoryInfo(prog.category).color}20`" x-text="categoryInfo(prog.category).emoji"></div>
+                    <div>
+                      <div class="font-semibold text-white" x-text="prog.name"></div>
+                      <div class="text-xs text-slate-400" x-text="prog.exercises.length+' exercice(s)'"></div>
+                    </div>
+                  </div>
+                  <div class="flex flex-wrap gap-1.5 pl-14">
+                    <template x-for="ex in prog.exercises" :key="ex.id">
+                      <span class="text-xs px-2 py-0.5 rounded-full" :style="groupBadgeStyle(ex.group)" x-text="ex.group"></span>
+                    </template>
+                  </div>
+                </button>
+              </template>
+            </div>
           </template>
         </div>
       </template>
@@ -234,35 +240,45 @@
       <div class="text-center py-12 text-slate-600 px-8"><div class="text-5xl mb-4">📋</div><p class="font-medium text-slate-400 text-lg">Aucun programme</p><p class="text-sm mt-2 text-slate-500">Crée un programme pour pré-remplir tes séances.</p></div>
     </template>
     <div class="px-4">
-      <template x-for="prog in programmes" :key="prog.id">
-        <div class="bg-slate-800 rounded-2xl mb-3 border border-slate-700/50 overflow-hidden">
-          <div class="p-4 flex items-start justify-between">
-            <div class="flex-1 min-w-0">
-              <div class="font-bold text-white text-base" x-text="prog.name"></div>
-              <div class="text-xs text-slate-400 mt-1" x-text="prog.exercises.length+' exercice(s)'"></div>
-              <div class="flex flex-wrap gap-1.5 mt-2">
+      <template x-for="catGroup in programmesByCategory" :key="catGroup.id">
+        <div class="mb-5">
+          <!-- En-tête catégorie -->
+          <div class="flex items-center gap-2 mb-2 px-1">
+            <span x-text="catGroup.emoji" class="text-base"></span>
+            <span class="text-xs font-bold uppercase tracking-wider" :style="`color:${catGroup.color}`" x-text="catGroup.name"></span>
+            <span class="text-slate-600 text-xs font-normal" x-text="'('+catGroup.programmes.length+')'"></span>
+          </div>
+          <template x-for="prog in catGroup.programmes" :key="prog.id">
+            <div class="bg-slate-800 rounded-2xl mb-3 border border-slate-700/50 overflow-hidden">
+              <div class="p-4 flex items-start justify-between">
+                <div class="flex-1 min-w-0">
+                  <div class="font-bold text-white text-base" x-text="prog.name"></div>
+                  <div class="text-xs text-slate-400 mt-1" x-text="prog.exercises.length+' exercice(s)'"></div>
+                  <div class="flex flex-wrap gap-1.5 mt-2">
+                    <template x-for="ex in prog.exercises" :key="ex.id">
+                      <span class="text-xs px-2 py-0.5 rounded-full" :style="groupBadgeStyle(ex.group)" x-text="ex.group"></span>
+                    </template>
+                  </div>
+                </div>
+                <div class="flex items-center gap-1 ml-3 flex-shrink-0">
+                  <button @click="editProgramme(prog)" class="p-2 rounded-xl text-slate-400 hover:text-blue-400 hover:bg-blue-400/10 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                  </button>
+                  <button @click="confirmDeleteProgrammeId=prog.id" class="p-2 rounded-xl text-slate-400 hover:text-red-400 hover:bg-red-400/10 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                  </button>
+                </div>
+              </div>
+              <div class="border-t border-slate-700 px-4 py-3">
                 <template x-for="ex in prog.exercises" :key="ex.id">
-                  <span class="text-xs px-2 py-0.5 rounded-full" :style="groupBadgeStyle(ex.group)" x-text="ex.group"></span>
+                  <div class="flex items-center justify-between py-1.5 text-sm">
+                    <span class="text-slate-300" x-text="ex.name"></span>
+                    <span class="text-slate-500 text-xs" x-text="ex.sets+' × '+ex.reps+' reps — '+ex.weight+' kg'"></span>
+                  </div>
                 </template>
               </div>
             </div>
-            <div class="flex items-center gap-1 ml-3 flex-shrink-0">
-              <button @click="editProgramme(prog)" class="p-2 rounded-xl text-slate-400 hover:text-blue-400 hover:bg-blue-400/10 transition-colors">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-              </button>
-              <button @click="confirmDeleteProgrammeId=prog.id" class="p-2 rounded-xl text-slate-400 hover:text-red-400 hover:bg-red-400/10 transition-colors">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-              </button>
-            </div>
-          </div>
-          <div class="border-t border-slate-700 px-4 py-3">
-            <template x-for="ex in prog.exercises" :key="ex.id">
-              <div class="flex items-center justify-between py-1.5 text-sm">
-                <span class="text-slate-300" x-text="ex.name"></span>
-                <span class="text-slate-500 text-xs" x-text="ex.sets+' × '+ex.reps+' reps — '+ex.weight+' kg'"></span>
-              </div>
-            </template>
-          </div>
+          </template>
         </div>
       </template>
 
@@ -295,6 +311,24 @@
         <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Nom du programme</label>
         <input type="text" x-model="editingProgramme.name" placeholder="ex: Push Day, Full Body…" class="w-full bg-slate-800 border border-slate-700 focus:border-blue-500 text-white rounded-2xl px-4 py-3.5 text-sm focus:outline-none transition-colors placeholder-slate-600">
       </div>
+      <!-- Catégorie -->
+      <div class="mb-5">
+        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Catégorie</label>
+        <div class="flex flex-wrap gap-2">
+          <button @click="editingProgramme.category=''"
+            :class="!editingProgramme.category?'ring-2 ring-slate-400 bg-slate-600 text-white':'bg-slate-700 text-slate-400 hover:bg-slate-600'"
+            class="px-3 py-1.5 rounded-xl text-sm font-medium transition-all">Aucune</button>
+          <template x-for="cat in categories" :key="cat.id">
+            <button @click="editingProgramme.category=cat.name"
+              :class="editingProgramme.category===cat.name?'ring-2 text-white':'bg-slate-700 text-slate-400 hover:bg-slate-600'"
+              :style="editingProgramme.category===cat.name?`ring-color:${cat.color};background:${cat.color}30;color:${cat.color}`:``"
+              class="px-3 py-1.5 rounded-xl text-sm font-medium transition-all flex items-center gap-1.5">
+              <span x-text="cat.emoji"></span><span x-text="cat.name"></span>
+            </button>
+          </template>
+        </div>
+      </div>
+
       <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Exercices</label>
       <template x-if="editingProgramme.exercises.length===0">
         <div class="text-center py-8 text-slate-600 mb-4"><p class="text-sm">Aucun exercice — ajoutes-en un ci-dessous</p></div>
@@ -655,17 +689,23 @@
       </button>
       <template x-if="programmes.length>0">
         <div>
-          <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 px-1">Mes programmes</div>
-          <template x-for="prog in programmes" :key="prog.id">
-            <button @click="startSession(prog);showSessionPicker=false" class="w-full text-left px-4 py-4 bg-slate-700 hover:bg-slate-600 active:scale-[0.98] rounded-2xl mb-3 transition-all">
-              <div class="flex items-center gap-3 mb-2">
-                <div class="w-10 h-10 bg-violet-600/20 rounded-xl flex items-center justify-center text-xl">📋</div>
-                <div><div class="font-semibold text-white" x-text="prog.name"></div><div class="text-xs text-slate-400" x-text="prog.exercises.length+' exercice(s)'"></div></div>
+          <template x-for="catGroup in programmesByCategory" :key="catGroup.id">
+            <div>
+              <div class="text-xs font-bold uppercase tracking-wider mb-2 mt-3 px-1 flex items-center gap-1.5" :style="`color:${catGroup.color}`">
+                <span x-text="catGroup.emoji"></span><span x-text="catGroup.name"></span>
               </div>
-              <div class="flex flex-wrap gap-1.5 pl-[52px]">
-                <template x-for="ex in prog.exercises" :key="ex.id"><span class="text-xs px-2 py-0.5 rounded-full" :style="groupBadgeStyle(ex.group)" x-text="ex.group"></span></template>
-              </div>
-            </button>
+              <template x-for="prog in catGroup.programmes" :key="prog.id">
+                <button @click="startSession(prog);showSessionPicker=false" class="w-full text-left px-4 py-3.5 bg-slate-700 hover:bg-slate-600 active:scale-[0.98] rounded-2xl mb-2 transition-all">
+                  <div class="flex items-center gap-3 mb-2">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center text-xl" :style="`background:${categoryInfo(prog.category).color}20`" x-text="categoryInfo(prog.category).emoji"></div>
+                    <div><div class="font-semibold text-white" x-text="prog.name"></div><div class="text-xs text-slate-400" x-text="prog.exercises.length+' exercice(s)'"></div></div>
+                  </div>
+                  <div class="flex flex-wrap gap-1.5 pl-[52px]">
+                    <template x-for="ex in prog.exercises" :key="ex.id"><span class="text-xs px-2 py-0.5 rounded-full" :style="groupBadgeStyle(ex.group)" x-text="ex.group"></span></template>
+                  </div>
+                </button>
+              </template>
+            </div>
           </template>
         </div>
       </template>
@@ -830,6 +870,11 @@ function gymApp() {
     programmes: [],
     programmeView: 'list',
     editingProgramme: null,
+    categories: [
+      { id:'masse',     name:'Prendre de la masse', emoji:'🏋️', color:'#fb923c' },
+      { id:'collectif', name:'Sport collectif',      emoji:'⚽', color:'#34d399' },
+      { id:'exterieur', name:'Sport extérieur',      emoji:'🌿', color:'#60a5fa' },
+    ],
 
     // Exercices
     exercises: [],
@@ -859,6 +904,27 @@ function gymApp() {
     selectedExerciseId: '',
     _progressChart: null, _volumeChart: null,
     progressStats: { sessions:0, maxWeight:0, trend:'—' },
+
+    // ── Computed : programmes par catégorie ──────────────
+    get programmesByCategory() {
+      const map = {};
+      this.programmes.forEach(p => {
+        const key = p.category || '__none__';
+        if(!map[key]) map[key] = [];
+        map[key].push(p);
+      });
+      const result = [];
+      this.categories.forEach(c => {
+        if(map[c.id] || map[c.name]) {
+          result.push({...c, programmes: map[c.name] || map[c.id] || []});
+        }
+      });
+      if(map['__none__']) result.push({id:'none', name:'Sans catégorie', emoji:'📋', color:'#94a3b8', programmes:map['__none__']});
+      return result;
+    },
+    categoryInfo(name) {
+      return this.categories.find(c=>c.name===name) || {emoji:'📋', color:'#94a3b8'};
+    },
 
     // ── Computed : calendrier ─────────────────────────────
     get calendarTitle() {
@@ -1043,7 +1109,7 @@ function gymApp() {
     },
 
     // ── Programmes ────────────────────────────────────────
-    startNewProgramme(){this.editingProgramme={id:null,name:'',exercises:[]};this.programmeView='editor';},
+    startNewProgramme(){this.editingProgramme={id:null,name:'',category:'',exercises:[]};this.programmeView='editor';},
     editProgramme(prog){this.editingProgramme=JSON.parse(JSON.stringify(prog));this.programmeView='editor';},
     async saveProgramme(){
       if(!this.editingProgramme.name.trim()){this.showToast('Donne un nom au programme !',true);return;}
