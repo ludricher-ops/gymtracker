@@ -317,12 +317,20 @@
   <!-- ── Séance en cours ── -->
   <template x-if="session">
     <div>
-  <div class="sticky top-0 z-10 backdrop-blur px-4 py-3 flex items-center justify-between" style="background:rgba(255,255,255,0.95);border-bottom:1px solid var(--border)">
-    <div>
-      <div class="text-xs mb-0.5" style="color:var(--muted)" x-text="session?.programmeName?'📋 '+session.programmeName:'Séance libre'"></div>
-      <div class="text-2xl font-bold" style="font-family:var(--mono);color:var(--accent)" x-text="formatDuration(sessionSeconds)"></div>
+  <div class="sticky top-0 z-10 flex items-center gap-3 px-4 py-3" style="background:rgba(255,255,255,0.96);border-bottom:1px solid var(--border);backdrop-filter:blur(10px)">
+    <!-- Close with confirmation -->
+    <button @click="confirmFinish=true" class="w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-full active:scale-90 transition-all" style="background:var(--s1);color:var(--muted)">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+    </button>
+    <!-- Centre : EN COURS + chrono -->
+    <div class="flex-1 text-center">
+      <div class="text-xs font-bold tracking-widest" style="color:var(--muted);letter-spacing:2px">EN COURS</div>
+      <div class="text-xl font-bold leading-tight" style="font-family:var(--mono);color:var(--text)" x-text="formatDuration(sessionSeconds)"></div>
     </div>
-    <button @click="confirmFinish=true" class="active:scale-95 font-semibold px-5 py-2.5 rounded-xl text-sm transition-all" style="background:#27ae60;color:#f0fff0">✓ Terminer</button>
+    <!-- Done/Total pill -->
+    <div class="flex-shrink-0 px-3 py-1.5 rounded-full font-bold text-sm" style="background:var(--accent);color:#fff;font-family:var(--mono)">
+      <span x-text="doneSetsCount"></span><span style="opacity:0.65">/</span><span x-text="totalSetsCount"></span>
+    </div>
   </div>
   <!-- Progress bar -->
   <div class="h-0.5" style="background:var(--border)">
@@ -333,51 +341,80 @@
       <div class="text-center py-16 text-slate-500"><div class="text-5xl mb-4">➕</div><p class="font-medium text-slate-400 text-lg">Ajoute ton premier exercice</p><p class="text-sm mt-1">en appuyant sur le bouton ci-dessous</p></div>
     </template>
       <template x-for="(exercise,exIdx) in session.exercises" :key="exercise.id">
-        <div class="bg-slate-800 rounded-2xl mb-4 overflow-hidden border border-slate-700/50">
+        <div class="rounded-2xl mb-4 overflow-hidden" style="background:var(--s1);border:1px solid var(--border)">
           <!-- Image si disponible -->
           <template x-if="exercise.imageUrl">
-            <div class="w-full h-40 bg-slate-900 overflow-hidden flex items-center justify-center">
+            <div class="w-full h-36 overflow-hidden flex items-center justify-center" style="background:var(--s2)">
               <img :src="exercise.imageUrl" :alt="exercise.name" class="max-w-full max-h-full object-contain" loading="lazy">
             </div>
           </template>
-          <div class="px-4 py-3 flex items-center justify-between border-b border-slate-700">
-            <div>
-              <div class="text-sm font-semibold text-white leading-tight" x-text="exercise.name"></div>
-              <div class="text-xs mt-0.5 font-medium" :style="`color:${groupColor(exercise.group)}`" x-text="exercise.group"></div>
+          <!-- Card header -->
+          <div class="px-4 py-3 flex items-center justify-between" style="border-bottom:1px solid var(--border)">
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2 mb-1">
+                <span class="text-xs font-bold tracking-wider" style="color:var(--muted)" x-text="'EX '+(exIdx+1)+'/'+session.exercises.length"></span>
+                <span class="text-xs px-2 py-0.5 rounded-full font-medium" :style="groupBadgeStyle(exercise.group)" x-text="exercise.group"></span>
+              </div>
+              <div class="text-base font-bold leading-tight" style="color:var(--text)" x-text="exercise.name"></div>
             </div>
-            <button @click="session.exercises.splice(exIdx,1)" class="text-slate-600 hover:text-red-400 p-1.5 rounded-lg hover:bg-red-400/10 transition-colors">
+            <button @click="session.exercises.splice(exIdx,1)" class="p-1.5 rounded-lg transition-colors flex-shrink-0 ml-3 active:scale-90" style="color:var(--dim)">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
           </div>
-          <div class="grid grid-cols-12 px-4 py-2 text-xs font-medium text-slate-500">
-            <div class="col-span-1">#</div><div class="col-span-5 text-center">Poids (kg)</div><div class="col-span-4 text-center">Reps</div><div class="col-span-2 text-center">✓</div>
+          <!-- Column headers -->
+          <div class="grid grid-cols-12 px-4 py-2 text-xs font-semibold" style="color:var(--dim)">
+            <div class="col-span-1">#</div><div class="col-span-5 text-center">kg</div><div class="col-span-4 text-center">reps</div><div class="col-span-2 text-center">✓</div>
           </div>
+          <!-- Sets -->
           <template x-for="(set,setIdx) in exercise.sets" :key="setIdx">
-            <div class="grid grid-cols-12 items-center px-4 py-2 gap-1 transition-colors" :class="set.done?'bg-emerald-950/40':''">
-              <div class="col-span-1 text-slate-500 text-sm font-mono" x-text="setIdx+1"></div>
-              <div class="col-span-5"><div class="flex items-center bg-slate-700 rounded-xl overflow-hidden">
-                <button @click="set.weight=Math.max(0,parseFloat((set.weight-2.5).toFixed(1)))" class="px-2.5 py-2 text-slate-400 hover:text-white hover:bg-slate-600 text-base font-bold leading-none transition-colors select-none">−</button>
-                <input type="number" x-model.number="set.weight" step="2.5" min="0" class="flex-1 bg-transparent text-center text-white text-sm font-semibold focus:outline-none w-0 min-w-0">
-                <button @click="set.weight=parseFloat((set.weight+2.5).toFixed(1))" class="px-2.5 py-2 text-slate-400 hover:text-white hover:bg-slate-600 text-base font-bold leading-none transition-colors select-none">+</button>
+            <div class="grid grid-cols-12 items-center px-4 py-2 gap-1 transition-all duration-200" :style="set.done?'background:oklch(0.74 0.19 48 / 0.10)':''">
+              <div class="col-span-1 text-xs font-bold" style="font-family:var(--mono);color:var(--muted)" x-text="setIdx+1"></div>
+              <div class="col-span-5"><div class="flex items-center rounded-xl overflow-hidden" style="background:var(--s2);border:1px solid var(--border)">
+                <button @click="set.weight=Math.max(0,parseFloat((set.weight-2.5).toFixed(1)))" class="px-2 py-2 text-base font-bold leading-none select-none active:scale-90 transition-all" style="color:var(--muted)">−</button>
+                <input type="number" x-model.number="set.weight" step="2.5" min="0" class="flex-1 bg-transparent text-center text-sm font-bold focus:outline-none w-0 min-w-0" style="color:var(--text);font-family:var(--mono)">
+                <button @click="set.weight=parseFloat((set.weight+2.5).toFixed(1))" class="px-2 py-2 text-base font-bold leading-none select-none active:scale-90 transition-all" style="color:var(--muted)">+</button>
               </div></div>
-              <div class="col-span-4"><div class="flex items-center bg-slate-700 rounded-xl overflow-hidden">
-                <button @click="set.reps=Math.max(1,set.reps-1)" class="px-2.5 py-2 text-slate-400 hover:text-white hover:bg-slate-600 text-base font-bold leading-none transition-colors select-none">−</button>
-                <input type="number" x-model.number="set.reps" min="1" class="flex-1 bg-transparent text-center text-white text-sm font-semibold focus:outline-none w-0 min-w-0">
-                <button @click="set.reps++" class="px-2.5 py-2 text-slate-400 hover:text-white hover:bg-slate-600 text-base font-bold leading-none transition-colors select-none">+</button>
+              <div class="col-span-4"><div class="flex items-center rounded-xl overflow-hidden" style="background:var(--s2);border:1px solid var(--border)">
+                <button @click="set.reps=Math.max(1,set.reps-1)" class="px-2 py-2 text-base font-bold leading-none select-none active:scale-90 transition-all" style="color:var(--muted)">−</button>
+                <input type="number" x-model.number="set.reps" min="1" class="flex-1 bg-transparent text-center text-sm font-bold focus:outline-none w-0 min-w-0" style="color:var(--text);font-family:var(--mono)">
+                <button @click="set.reps++" class="px-2 py-2 text-base font-bold leading-none select-none active:scale-90 transition-all" style="color:var(--muted)">+</button>
               </div></div>
               <div class="col-span-2 flex justify-center">
-                <button @click="set.done=!set.done" :class="set.done?'bg-emerald-500 text-white':'bg-slate-700 text-slate-500 hover:bg-slate-600'" class="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold transition-all active:scale-90">✓</button>
+                <button @click="if(!set.done){set.done=true;startRestTimer();}else{set.done=false;}" class="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold transition-all active:scale-90" :style="set.done?'background:var(--accent);color:#fff':'background:var(--s2);color:var(--dim);border:1px solid var(--border)'">✓</button>
               </div>
             </div>
           </template>
-          <div class="px-4 py-3 border-t border-slate-700">
-            <button @click="exercise.sets.push({reps:exercise.sets.at(-1)?.reps??10,weight:exercise.sets.at(-1)?.weight??20,done:false})" class="w-full text-center text-blue-400 hover:text-blue-300 text-sm py-1 transition-colors">+ Ajouter une série</button>
+          <!-- Add set -->
+          <div class="px-4 py-3" style="border-top:1px solid var(--border)">
+            <button @click="exercise.sets.push({reps:exercise.sets.at(-1)?.reps??10,weight:exercise.sets.at(-1)?.weight??20,done:false})" class="w-full text-center text-sm py-1 font-semibold transition-colors" style="color:var(--accent)">+ Ajouter une série</button>
           </div>
         </div>
       </template>
     </template>
-    <button @click="showExercisePicker='session'" class="w-full border-2 border-dashed border-slate-700 hover:border-blue-500/50 text-slate-500 hover:text-blue-400 font-medium py-4 rounded-2xl text-sm transition-all mb-6">+ Ajouter un exercice</button>
+    <button @click="showExercisePicker='session'" class="w-full font-semibold py-4 rounded-2xl text-sm transition-all mb-6 active:scale-98" style="border:2px dashed var(--accent);color:var(--accent)">+ Ajouter un exercice</button>
   </div>
+
+  <!-- ── Rest Timer Modal ── -->
+  <template x-if="restTimer">
+    <div class="fixed inset-0 z-50 flex flex-col items-center justify-center px-6" style="background:rgba(0,0,0,0.6);backdrop-filter:blur(6px)">
+      <div class="w-full max-w-xs rounded-3xl px-8 py-10 text-center" style="background:#fff;box-shadow:0 24px 64px rgba(0,0,0,0.18)">
+        <div class="text-xs font-bold tracking-widest mb-6" style="color:var(--muted);letter-spacing:2.5px">REPOS</div>
+        <!-- Countdown -->
+        <div class="text-6xl font-bold mb-2" style="font-family:var(--mono);color:var(--text)" x-text="String(Math.floor(restSeconds/60)).padStart(2,'0')+':'+String(restSeconds%60).padStart(2,'0')"></div>
+        <div class="text-xs mb-6" style="color:var(--dim)" x-text="'cible : '+Math.floor(restTarget/60)+'m'+String(restTarget%60).padStart(2,'0')+'s'"></div>
+        <!-- Progress bar -->
+        <div class="w-full rounded-full mb-8 overflow-hidden" style="height:5px;background:var(--s2)">
+          <div class="h-full rounded-full transition-all duration-1000 ease-linear" style="background:var(--accent)" :style="`width:${Math.max(0,(restTarget-restSeconds)/restTarget*100)}%`"></div>
+        </div>
+        <!-- Buttons -->
+        <div class="flex gap-3">
+          <button @click="addRestTime()" class="flex-1 py-3.5 rounded-2xl font-semibold text-sm active:scale-95 transition-all" style="background:var(--s1);color:var(--text);border:1px solid var(--border)">+15s</button>
+          <button @click="skipRestTimer()" class="py-3.5 px-6 rounded-2xl font-bold text-sm active:scale-95 transition-all" style="background:var(--accent);color:#fff;flex:2">Passer →</button>
+        </div>
+      </div>
+    </div>
+  </template>
+
   </div>
   </template>
 
@@ -1081,14 +1118,14 @@
 </div>
 
 <!-- ══ MODAL : TERMINER SÉANCE ════════════════════════════ -->
-<div x-show="confirmFinish" x-cloak class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 flex items-center justify-center px-4">
-  <div class="bg-slate-800 rounded-3xl p-6 w-full max-w-sm border border-slate-700">
+<div x-show="confirmFinish" x-cloak class="fixed inset-0 z-40 flex items-center justify-center px-4" style="background:rgba(0,0,0,0.55);backdrop-filter:blur(6px)">
+  <div class="rounded-3xl p-6 w-full max-w-sm" style="background:#fff;border:1px solid var(--border);box-shadow:0 24px 64px rgba(0,0,0,0.15)">
     <div class="text-4xl text-center mb-3">🏁</div>
-    <h3 class="font-bold text-white text-xl text-center mb-2">Terminer la séance ?</h3>
-    <p class="text-slate-400 text-sm text-center mb-6">La séance sera sauvegardée dans ton historique.</p>
+    <h3 class="font-bold text-xl text-center mb-2" style="color:var(--text)">Terminer la séance ?</h3>
+    <p class="text-sm text-center mb-6" style="color:var(--muted)">La séance sera sauvegardée dans ton historique.</p>
     <div class="flex gap-3">
-      <button @click="confirmFinish=false" class="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-300 py-3.5 rounded-2xl font-semibold transition-colors">Annuler</button>
-      <button @click="finishSession();confirmFinish=false" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white py-3.5 rounded-2xl font-semibold transition-colors">Terminer ✓</button>
+      <button @click="confirmFinish=false" class="flex-1 py-3.5 rounded-2xl font-semibold transition-colors active:scale-95" style="background:var(--s1);color:var(--text);border:1px solid var(--border)">Annuler</button>
+      <button @click="finishSession();confirmFinish=false" class="flex-1 py-3.5 rounded-2xl font-bold transition-colors active:scale-95" style="background:var(--accent);color:#fff">Terminer ✓</button>
     </div>
   </div>
 </div>
@@ -1139,6 +1176,7 @@ function gymApp() {
 
     // Session
     session: null, sessionSeconds: 0, _sessionTimer: null,
+    restTimer: null, restSeconds: 0, restTarget: 90, _restInterval: null,
     sessions: [],
 
     // Programmes
@@ -1405,6 +1443,14 @@ function gymApp() {
       this.session.exercises.forEach(ex=>ex.sets.forEach(s=>{total++;if(s.done)done++;}));
       return total?done/total:0;
     },
+    get doneSetsCount(){
+      if(!this.session)return 0;
+      let done=0; this.session.exercises.forEach(ex=>ex.sets.forEach(s=>{if(s.done)done++;})); return done;
+    },
+    get totalSetsCount(){
+      if(!this.session)return 0;
+      let total=0; this.session.exercises.forEach(ex=>total+=ex.sets.length); return total;
+    },
     totalVolume(s){let v=0;s.exercises.forEach(ex=>ex.sets.forEach(s=>{if(s.done)v+=s.weight*s.reps;}));return v.toLocaleString('fr-FR');},
     showToast(msg,error=false){this.toast={show:true,msg,error};setTimeout(()=>{this.toast.show=false;},2500);},
 
@@ -1450,13 +1496,24 @@ function gymApp() {
       this.tab='seance';
     },
     async finishSession(){
-      clearInterval(this._sessionTimer);
+      clearInterval(this._sessionTimer); clearInterval(this._restInterval);
+      this.restTimer=null;
       this.session.duration=this.sessionSeconds;
       const saved=JSON.parse(JSON.stringify(this.session));
       try{await this.api('POST','/api/sessions',saved);this.sessions.unshift(saved);this.showToast('Séance sauvegardée ✓');}
       catch(e){this.showToast('Erreur lors de la sauvegarde',true);}
       this.session=null;this.sessionSeconds=0;this.tab='historique';
     },
+    startRestTimer(){
+      clearInterval(this._restInterval);
+      this.restSeconds=this.restTarget; this.restTimer=true;
+      this._restInterval=setInterval(()=>{
+        if(this.restSeconds>0){this.restSeconds--;}
+        else{clearInterval(this._restInterval);this.restTimer=null;}
+      },1000);
+    },
+    skipRestTimer(){clearInterval(this._restInterval);this.restTimer=null;},
+    addRestTime(){this.restSeconds+=15;},
     startEditSession(s){
       this.editingSession=JSON.parse(JSON.stringify(s));
       this.historiqueView='editSession';
