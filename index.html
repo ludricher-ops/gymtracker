@@ -36,10 +36,10 @@
 
     /* ── Design tokens ─────────────────────────────────── */
     :root{
-      --accent:#C9A84C;--accent-ink:#0d0d0d;
+      --accent:oklch(0.74 0.19 48);--accent-ink:oklch(0.18 0.02 48);
       --bg:#ffffff;--s1:#f5f3ef;--s1h:#eceae4;--s2:#ece9e3;--s3:#e4e0d8;
-      --text:#1c1611;--muted:#7a7060;--dim:#b0a898;
-      --border:#e4e0d8;
+      --text:oklch(0.18 0.010 75);--muted:oklch(0.50 0.010 75);--dim:oklch(0.70 0.008 75);
+      --border:oklch(0.90 0.006 80);
       --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,monospace;
     }
 
@@ -54,15 +54,15 @@
     [class~="bg-slate-700\/50"]{background-color:rgba(236,233,227,0.6)!important}
     [class~="bg-slate-600"]{background-color:var(--s3)!important}
 
-    /* ── Blue → Accent or ──────────────────────────────── */
+    /* ── Blue → Accent orange ─────────────────────────── */
     [class~="bg-blue-600"]{background-color:var(--accent)!important;color:var(--accent-ink)!important}
-    [class~="bg-blue-600\/20"]{background-color:rgba(201,168,76,0.12)!important}
-    [class~="bg-blue-400\/10"]{background-color:rgba(201,168,76,0.08)!important}
-    [class~="text-blue-400"]{color:#a07c28!important}
-    [class~="text-blue-300"]{color:#b89035!important}
+    [class~="bg-blue-600\/20"]{background-color:oklch(0.74 0.19 48 / 0.12)!important}
+    [class~="bg-blue-400\/10"]{background-color:oklch(0.74 0.19 48 / 0.08)!important}
+    [class~="text-blue-400"]{color:oklch(0.52 0.19 48)!important}
+    [class~="text-blue-300"]{color:oklch(0.57 0.18 48)!important}
     [class~="border-blue-500"]{border-color:var(--accent)!important}
-    [class~="shadow-blue-900\/40"]{--tw-shadow-color:rgba(201,168,76,0.2)!important}
-    [class~="hover:border-blue-500\/50"]:hover{border-color:rgba(201,168,76,0.4)!important}
+    [class~="shadow-blue-900\/40"]{--tw-shadow-color:oklch(0.74 0.19 48 / 0.2)!important}
+    [class~="hover:border-blue-500\/50"]:hover{border-color:oklch(0.74 0.19 48 / 0.4)!important}
     [class~="focus:border-blue-500"]:focus{border-color:var(--accent)!important}
     [class~="ring-blue-500"]{--tw-ring-color:var(--accent)!important}
 
@@ -101,17 +101,17 @@
     [class~="bg-red-400\/10"]{background-color:rgba(192,57,43,0.08)!important}
 
     /* ── Hovers ────────────────────────────────────────── */
-    [class~="hover:bg-blue-500"]:hover{background-color:#E8C56A!important;color:var(--accent-ink)!important}
+    [class~="hover:bg-blue-500"]:hover{background-color:oklch(0.82 0.15 48)!important;color:var(--accent-ink)!important}
     [class~="hover:bg-emerald-500"]:hover{background-color:#2ecc71!important}
     [class~="hover:bg-red-500"]:hover{background-color:#c0392b!important}
     [class~="hover:bg-slate-700"]:hover{background-color:var(--s1h)!important}
     [class~="hover:bg-slate-600"]:hover{background-color:var(--s3)!important}
     [class~="hover:text-white"]:hover{color:var(--text)!important}
-    [class~="hover:text-blue-400"]:hover{color:#a07c28!important}
-    [class~="hover:text-blue-300"]:hover{color:#b89035!important}
+    [class~="hover:text-blue-400"]:hover{color:oklch(0.52 0.19 48)!important}
+    [class~="hover:text-blue-300"]:hover{color:oklch(0.57 0.18 48)!important}
     [class~="hover:text-red-400"]:hover{color:#c0392b!important}
     [class~="hover:bg-red-400\/10"]:hover{background-color:rgba(192,57,43,0.08)!important}
-    [class~="hover:bg-blue-400\/10"]:hover{background-color:rgba(201,168,76,0.08)!important}
+    [class~="hover:bg-blue-400\/10"]:hover{background-color:oklch(0.74 0.19 48 / 0.08)!important}
     [class~="hover:border-slate-600"]:hover{border-color:#d8d4cc!important}
 
     /* ── Nav ───────────────────────────────────────────── */
@@ -130,11 +130,11 @@
     /* ── Calendar classes ──────────────────────────────── */
     .cal-sel-session{background-color:var(--accent)!important;color:var(--accent-ink)!important}
     .cal-sel{background-color:var(--s3)!important;color:var(--text)!important}
-    .cal-has{background-color:rgba(201,168,76,0.15)!important;color:#a07c28!important;box-shadow:inset 0 0 0 1px rgba(201,168,76,0.4)}
-    .cal-today{color:#a07c28!important;box-shadow:inset 0 0 0 1px rgba(201,168,76,0.6)}
+    .cal-has{background-color:oklch(0.74 0.19 48 / 0.15)!important;color:oklch(0.52 0.19 48)!important;box-shadow:inset 0 0 0 1px oklch(0.74 0.19 48 / 0.4)}
+    .cal-today{color:oklch(0.52 0.19 48)!important;box-shadow:inset 0 0 0 1px oklch(0.74 0.19 48 / 0.6)}
     .cal-empty{color:var(--dim)}
     .cal-empty:hover,.cal-today:hover{background-color:var(--s1)!important}
-    .cal-has:hover{background-color:rgba(201,168,76,0.22)!important}
+    .cal-has:hover{background-color:oklch(0.74 0.19 48 / 0.22)!important}
   </style>
 </head>
 <body x-data="gymApp()" x-init="init()">
@@ -142,7 +142,7 @@
 <!-- ══ TOAST ══════════════════════════════════════════════ -->
 <div x-show="toast.show" x-cloak
   class="fixed top-4 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-2xl text-sm font-medium shadow-xl animate-in"
-  :style="toast.error ? 'background:var(--s1);border:1px solid rgba(192,57,43,0.35);border-left:3px solid #C0392B;color:var(--text);box-shadow:0 8px 32px rgba(0,0,0,0.5)' : 'background:var(--s1);border:1px solid rgba(201,168,76,0.3);border-left:3px solid #C9A84C;color:var(--text);box-shadow:0 8px 32px rgba(0,0,0,0.5)'"
+  :style="toast.error ? 'background:var(--s1);border:1px solid rgba(192,57,43,0.35);border-left:3px solid #C0392B;color:var(--text);box-shadow:0 8px 32px rgba(0,0,0,0.5)' : 'background:var(--s1);border:1px solid oklch(0.74 0.19 48 / 0.3);border-left:3px solid oklch(0.74 0.19 48);color:var(--text);box-shadow:0 8px 32px rgba(0,0,0,0.5)'"
   x-text="toast.msg"></div>
 
 <!-- ══ LOADING ════════════════════════════════════════════ -->
@@ -174,14 +174,14 @@
 
   <!-- ── Streak strip ── -->
   <div class="mx-4 mb-4 px-4 py-3 rounded-2xl flex items-center gap-3" style="background:var(--s1);border:1px solid var(--border)">
-    <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style="background:rgba(201,168,76,0.15)">
+    <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style="background:oklch(0.74 0.19 48 / 0.15)">
       <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" style="color:var(--accent)"><path d="M13 2L4.5 13.5H11l-1 8.5 8.5-11.5H13L13 2z"/></svg>
     </div>
     <div class="flex-1 min-w-0">
       <div class="text-sm font-semibold mb-1.5" style="color:var(--text)" x-text="stats.streak + (stats.streak > 1 ? ' jours' : ' jour') + ' d\'affilée'"></div>
-      <div class="flex gap-1">
+      <div class="flex gap-0.5">
         <template x-for="(active, i) in streakDays()" :key="i">
-          <div class="h-1.5 flex-1 rounded-full" :style="active ? 'background:var(--accent)' : 'background:var(--s3)'"></div>
+          <div style="width:14px;height:22px;border-radius:4px;flex-shrink:0" :style="active ? 'background:var(--accent)' : 'background:var(--s2);opacity:0.6'"></div>
         </template>
       </div>
     </div>
@@ -617,18 +617,33 @@
   <!-- ── Vue Liste ── -->
   <div x-show="historiqueView==='liste'">
 
-    <!-- Heatmap 4 semaines -->
-    <div class="px-4 mb-5">
-      <div class="font-semibold tracking-[0.12em] uppercase mb-2.5" style="font-size:10px;color:var(--muted)">4 dernières semaines</div>
-      <div class="grid gap-1" style="grid-template-columns:repeat(28,1fr)">
-        <template x-for="(cell, i) in heatmapDays()" :key="i">
-          <div class="rounded-sm" style="aspect-ratio:1"
-            :style="cell.count > 0 ? `background:rgba(201,168,76,${Math.min(0.9, 0.25 + cell.count * 0.35)})` : 'background:var(--s2)'"></div>
-        </template>
+    <!-- Heatmap RÉGULARITÉ — colonnes de semaines -->
+    <div style="background:var(--s1);border:1px solid var(--border);border-radius:22px;padding:16px 16px 18px;margin:0 16px 14px">
+      <div class="flex items-center justify-between" style="margin-bottom:14px">
+        <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:1.4px">RÉGULARITÉ</div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--muted)" x-text="heatmapSessionCount() + ' / 28 jours'"></div>
       </div>
-      <div class="flex justify-between mt-1.5">
-        <span style="font-size:9px;color:var(--dim)">−4 sem.</span>
-        <span style="font-size:9px;color:var(--dim)">auj.</span>
+      <div class="flex gap-2">
+        <!-- Labels jours -->
+        <div class="flex flex-col" style="gap:4px;padding-top:22px">
+          <template x-for="d in ['L','M','M','J','V','S','D']" :key="d+Math.random()">
+            <div style="height:22px;font-size:10px;color:var(--muted);font-family:var(--mono);line-height:22px" x-text="d"></div>
+          </template>
+        </div>
+        <!-- 4 colonnes de semaines -->
+        <div class="flex-1 grid" style="grid-template-columns:repeat(4,1fr);gap:6px">
+          <template x-for="(week, wi) in heatmapWeeks()" :key="wi">
+            <div>
+              <div style="text-align:center;font-size:10px;font-family:var(--mono);color:var(--muted);margin-bottom:4px" x-text="'S' + heatmapWeekNum(wi)"></div>
+              <div class="flex flex-col" style="gap:4px">
+                <template x-for="(hasSession, di) in week" :key="di">
+                  <div style="height:22px;border-radius:5px"
+                    :style="hasSession ? `background:var(--accent);opacity:${wi===3 ? 1 : 0.55+wi*0.15}` : 'background:var(--s2)'"></div>
+                </template>
+              </div>
+            </div>
+          </template>
+        </div>
       </div>
     </div>
 
@@ -1349,10 +1364,29 @@ function gymApp() {
       for(let i=6;i>=0;i--){const t=new Date(d);t.setDate(d.getDate()-i);result.push(days.has(t.toDateString()));}
       return result;
     },
-    heatmapDays(){
-      const result=[]; const d=new Date(); d.setHours(0,0,0,0);
-      for(let i=27;i>=0;i--){const t=new Date(d);t.setDate(d.getDate()-i);const key=t.toDateString();result.push({date:t,count:this.sessions.filter(s=>new Date(s.date).toDateString()===key).length});}
+    heatmapWeeks(){
+      const result=[]; const now=new Date(); now.setHours(0,0,0,0);
+      const dow=now.getDay(); const daysToMon=dow===0?6:dow-1;
+      const monday=new Date(now); monday.setDate(now.getDate()-daysToMon);
+      for(let wi=0;wi<4;wi++){
+        const weekStart=new Date(monday); weekStart.setDate(monday.getDate()-(3-wi)*7);
+        const week=[];
+        for(let d=0;d<7;d++){const day=new Date(weekStart);day.setDate(weekStart.getDate()+d);week.push(this.sessions.some(s=>new Date(s.date).toDateString()===day.toDateString()));}
+        result.push(week);
+      }
       return result;
+    },
+    heatmapWeekNum(wi){
+      const now=new Date(); now.setHours(0,0,0,0);
+      const dow=now.getDay(); const daysToMon=dow===0?6:dow-1;
+      const monday=new Date(now); monday.setDate(now.getDate()-daysToMon-(3-wi)*7);
+      const d=new Date(monday); d.setDate(d.getDate()+3-(d.getDay()+6)%7);
+      const w1=new Date(d.getFullYear(),0,4);
+      return 1+Math.round(((d-w1)/86400000-3+(w1.getDay()+6)%7)/7);
+    },
+    heatmapSessionCount(){
+      const cutoff=Date.now()-28*864e5;
+      return this.sessions.filter(s=>new Date(s.date).getTime()>cutoff).length;
     },
     get weekVolume(){
       const cutoff=Date.now()-7*864e5; let v=0;
@@ -1533,15 +1567,15 @@ function gymApp() {
       });
       if(wD.length>0){const first=wD[0].y,last=wD[wD.length-1].y;this.progressStats={sessions:wD.length,maxWeight:Math.max(...wD.map(d=>d.y)),trend:wD.length<2?'—':last>first?'📈':last<first?'📉':'➡️'};}
       else{this.progressStats={sessions:0,maxWeight:0,trend:'—'};return;}
-      const accent=getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()||'#C9A84C';
+      const accent=getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()||'oklch(0.74 0.19 48)';
       const scales={x:{ticks:{color:'#8a7f73',font:{size:11,family:"'Space Grotesk',sans-serif"}},grid:{color:'rgba(0,0,0,0.06)'}},y:{ticks:{color:'#8a7f73',font:{size:11,family:"'Space Grotesk',sans-serif"}},grid:{color:'rgba(0,0,0,0.06)'}}};
       this.$nextTick(()=>{
         if(this._progressChart)this._progressChart.destroy();
         const c1=document.getElementById('progressChart');
-        if(c1)this._progressChart=new Chart(c1,{type:'line',data:{labels:wD.map(d=>d.x),datasets:[{data:wD.map(d=>d.y),borderColor:accent,backgroundColor:'rgba(201,168,76,0.08)',borderWidth:2.5,pointBackgroundColor:accent,pointBorderColor:'#ffffff',pointBorderWidth:2,pointRadius:5,fill:true,tension:0.35}]},options:{responsive:true,plugins:{legend:{display:false}},scales}});
+        if(c1)this._progressChart=new Chart(c1,{type:'line',data:{labels:wD.map(d=>d.x),datasets:[{data:wD.map(d=>d.y),borderColor:accent,backgroundColor:'oklch(0.74 0.19 48 / 0.08)',borderWidth:2.5,pointBackgroundColor:accent,pointBorderColor:'#ffffff',pointBorderWidth:2,pointRadius:5,fill:true,tension:0.35}]},options:{responsive:true,plugins:{legend:{display:false}},scales}});
         if(this._volumeChart)this._volumeChart.destroy();
         const c2=document.getElementById('volumeChart');
-        if(c2)this._volumeChart=new Chart(c2,{type:'bar',data:{labels:vD.map(d=>d.x),datasets:[{data:vD.map(d=>d.y),backgroundColor:'rgba(201,168,76,0.65)',borderColor:accent,borderWidth:1.5,borderRadius:6}]},options:{responsive:true,plugins:{legend:{display:false}},scales}});
+        if(c2)this._volumeChart=new Chart(c2,{type:'bar',data:{labels:vD.map(d=>d.x),datasets:[{data:vD.map(d=>d.y),backgroundColor:'oklch(0.74 0.19 48 / 0.65)',borderColor:accent,borderWidth:1.5,borderRadius:6}]},options:{responsive:true,plugins:{legend:{display:false}},scales}});
       });
     }
   };
