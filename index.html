@@ -463,10 +463,17 @@
                    @click="expandedProgrammes={...expandedProgrammes,[prog.id]:!expandedProgrammes[prog.id]}">
                 <div class="flex-1 min-w-0">
                   <div class="font-bold text-white text-base" x-text="prog.name"></div>
-                  <div class="text-xs text-slate-400 mt-1" x-text="prog.exercises.length+' exercice(s)'"></div>
+                  <div class="text-xs text-slate-400 mt-1" x-text="prog.weekSessions ? Object.values(prog.weekSessions).filter(Boolean).length+' séances/sem' : (prog.exercises||[]).length+' exercice(s)'"></div>
                   <div class="flex flex-wrap gap-1.5 mt-2">
-                    <template x-for="ex in prog.exercises" :key="ex.id">
-                      <span class="text-xs px-2 py-0.5 rounded-full" :style="groupBadgeStyle(ex.group)" x-text="ex.group"></span>
+                    <template x-if="!prog.weekSessions">
+                      <template x-for="ex in (prog.exercises||[])" :key="ex.id">
+                        <span class="text-xs px-2 py-0.5 rounded-full" :style="groupBadgeStyle(ex.group)" x-text="ex.group"></span>
+                      </template>
+                    </template>
+                    <template x-if="prog.weekSessions">
+                      <template x-for="ds in progDaySessions(prog)" :key="ds.key">
+                        <span class="text-xs px-2 py-0.5 rounded-full font-semibold" :style="`background:${prog.color||'var(--accent)'}20;color:${prog.color||'var(--accent)'}`" x-text="ds.label.slice(0,3)+' · '+ds.session.name"></span>
+                      </template>
                     </template>
                   </div>
                 </div>
@@ -486,11 +493,32 @@
               </div>
               <!-- Détail dépliable -->
               <div x-show="expandedProgrammes[prog.id]" class="border-t border-slate-700 px-4 py-3">
-                <template x-for="ex in prog.exercises" :key="ex.id">
-                  <div class="flex items-center justify-between py-1.5 text-sm">
-                    <span class="text-slate-300" x-text="ex.name"></span>
-                    <span class="text-slate-500 text-xs" x-text="ex.sets+' × '+ex.reps+' reps — '+ex.weight+' kg'"></span>
+                <!-- Wizard programme : affichage par jour -->
+                <template x-if="prog.weekSessions">
+                  <div>
+                    <template x-for="ds in progDaySessions(prog)" :key="ds.key">
+                      <div class="mb-3">
+                        <div class="text-xs font-bold mb-1.5 flex items-center gap-2" :style="`color:${prog.color||'var(--accent)'}`">
+                          <span x-text="ds.label"></span><span style="color:#aaa">·</span><span x-text="ds.session.name"></span>
+                        </div>
+                        <template x-for="ex in ds.session.exercises" :key="ex.id">
+                          <div class="flex items-center justify-between py-1 text-xs pl-2">
+                            <span class="text-slate-300" x-text="ex.name"></span>
+                            <span class="text-slate-500" x-text="ex.sets+'×'+ex.reps+' — '+ex.weight+'kg'"></span>
+                          </div>
+                        </template>
+                      </div>
+                    </template>
                   </div>
+                </template>
+                <!-- Programme classique : liste plate -->
+                <template x-if="!prog.weekSessions">
+                  <template x-for="ex in (prog.exercises||[])" :key="ex.id">
+                    <div class="flex items-center justify-between py-1.5 text-sm">
+                      <span class="text-slate-300" x-text="ex.name"></span>
+                      <span class="text-slate-500 text-xs" x-text="ex.sets+' × '+ex.reps+' reps — '+ex.weight+' kg'"></span>
+                    </div>
+                  </template>
                 </template>
               </div>
             </div>
@@ -630,6 +658,259 @@
         </div>
       </template>
     </div>
+  </div>
+
+  <!-- ── Wizard création programme (4 étapes) ── -->
+  <div x-show="programmeView==='wizard'" x-cloak>
+    <template x-if="wizardProg">
+      <div>
+
+        <!-- ─ ÉTAPE 1 : INFORMATIONS ─ -->
+        <div x-show="wizardStep===1">
+          <div class="sticky top-0 z-10 flex items-center px-4 py-3 gap-3" style="background:rgba(255,255,255,0.96);border-bottom:1px solid var(--border);backdrop-filter:blur(10px)">
+            <button @click="cancelWizard()" class="w-10 h-10 flex items-center justify-center rounded-full active:scale-90 transition-all" style="background:var(--s1);color:var(--muted)">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+            <div class="flex-1 text-center">
+              <div class="text-xs font-bold tracking-widest" style="color:var(--muted);letter-spacing:2px">NOUVEAU PROGRAMME</div>
+              <div class="text-sm font-bold" style="color:var(--text)">1/4 · Informations</div>
+            </div>
+            <button @click="if(wizardProg.name.trim())wizardNextStep()" class="px-4 py-1.5 rounded-xl text-sm font-bold transition-all active:scale-95" :style="wizardProg.name.trim()?'background:var(--accent);color:#fff':'background:var(--s2);color:var(--dim)'">Suite →</button>
+          </div>
+          <div style="height:3px;background:var(--s2)"><div style="height:100%;background:var(--accent);width:25%;transition:width 0.3s"></div></div>
+          <div class="px-5 pt-6 pb-28">
+            <div class="mb-6">
+              <label class="block text-xs font-bold uppercase tracking-widest mb-2.5" style="color:var(--muted)">Nom du programme</label>
+              <input type="text" x-model="wizardProg.name" placeholder="ex : Push Pull Legs, Full Body…" class="w-full rounded-2xl px-4 py-4 text-base font-medium focus:outline-none transition-all" style="background:var(--s1);border:1.5px solid var(--border);color:var(--text)" :style="wizardProg.name.trim()?'border-color:var(--accent)':''">
+            </div>
+            <div class="mb-6">
+              <label class="block text-xs font-bold uppercase tracking-widest mb-3" style="color:var(--muted)">Objectif</label>
+              <div class="grid grid-cols-2 gap-2.5">
+                <template x-for="g in [{id:'hypertrophie',label:'Hypertrophie',emoji:'💪'},{id:'force',label:'Force',emoji:'🏋️'},{id:'endurance',label:'Endurance',emoji:'🏃'},{id:'perte_de_gras',label:'Perte de gras',emoji:'🔥'}]" :key="g.id">
+                  <button @click="wizardProg.goal=g.id" class="flex items-center gap-2.5 px-3 py-3.5 rounded-2xl text-sm font-semibold transition-all active:scale-95 text-left" :style="wizardProg.goal===g.id?'background:var(--accent);color:#fff;border:1.5px solid var(--accent)':'background:var(--s1);color:var(--text);border:1.5px solid var(--border)'">
+                    <span x-text="g.emoji" class="text-base"></span><span x-text="g.label"></span>
+                  </button>
+                </template>
+              </div>
+            </div>
+            <div class="mb-6">
+              <label class="block text-xs font-bold uppercase tracking-widest mb-3" style="color:var(--muted)">Niveau</label>
+              <div class="flex gap-2">
+                <template x-for="l in [{id:'débutant',label:'Débutant'},{id:'intermédiaire',label:'Interméd.'},{id:'avancé',label:'Avancé'}]" :key="l.id">
+                  <button @click="wizardProg.level=l.id" class="flex-1 py-3 rounded-2xl text-sm font-semibold transition-all active:scale-95" :style="wizardProg.level===l.id?'background:var(--accent);color:#fff':'background:var(--s1);color:var(--text);border:1.5px solid var(--border)'" x-text="l.label"></button>
+                </template>
+              </div>
+            </div>
+            <div class="mb-6">
+              <label class="block text-xs font-bold uppercase tracking-widest mb-3" style="color:var(--muted)">Durée</label>
+              <div class="flex items-center rounded-2xl overflow-hidden" style="background:var(--s1);border:1.5px solid var(--border)">
+                <button @click="wizardProg.durationWeeks=Math.max(4,wizardProg.durationWeeks-1)" class="px-6 py-4 text-xl font-bold select-none active:scale-90 transition-all" style="color:var(--muted)">−</button>
+                <div class="flex-1 text-center text-lg font-bold" style="font-family:var(--mono);color:var(--text)" x-text="wizardProg.durationWeeks+' semaines'"></div>
+                <button @click="wizardProg.durationWeeks=Math.min(52,wizardProg.durationWeeks+1)" class="px-6 py-4 text-xl font-bold select-none active:scale-90 transition-all" style="color:var(--muted)">+</button>
+              </div>
+            </div>
+            <div class="mb-6">
+              <label class="block text-xs font-bold uppercase tracking-widest mb-3" style="color:var(--muted)">Couleur d'accent</label>
+              <div class="flex gap-4">
+                <template x-for="c in wizardColors" :key="c">
+                  <button @click="wizardProg.color=c" class="w-11 h-11 rounded-full transition-all active:scale-90 flex items-center justify-center" :style="`background:${c};box-shadow:${wizardProg.color===c?'0 0 0 3px #fff,0 0 0 5px '+c:''}`">
+                    <svg x-show="wizardProg.color===c" class="w-5 h-5" fill="none" stroke="#fff" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                  </button>
+                </template>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ─ ÉTAPE 2 : STRUCTURE SEMAINE ─ -->
+        <div x-show="wizardStep===2">
+          <div class="sticky top-0 z-10 flex items-center px-4 py-3 gap-3" style="background:rgba(255,255,255,0.96);border-bottom:1px solid var(--border);backdrop-filter:blur(10px)">
+            <button @click="wizardPrevStep()" class="w-10 h-10 flex items-center justify-center rounded-full active:scale-90 transition-all" style="background:var(--s1);color:var(--muted)">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+            </button>
+            <div class="flex-1 text-center">
+              <div class="text-xs font-bold tracking-widest" style="color:var(--muted);letter-spacing:2px">NOUVEAU PROGRAMME</div>
+              <div class="text-sm font-bold" style="color:var(--text)">2/4 · Structure semaine</div>
+            </div>
+            <button @click="wizardNextStep()" class="px-4 py-1.5 rounded-xl text-sm font-bold transition-all active:scale-95" style="background:var(--accent);color:#fff">Suite →</button>
+          </div>
+          <div style="height:3px;background:var(--s2)"><div style="height:100%;background:var(--accent);width:50%;transition:width 0.3s"></div></div>
+          <div class="flex gap-6 px-5 py-3" style="background:var(--s1);border-bottom:1px solid var(--border)">
+            <div class="text-center"><div class="text-xl font-bold" style="font-family:var(--mono);color:var(--accent)" x-text="wizardSessionCount"></div><div class="text-xs" style="color:var(--muted)">séances</div></div>
+            <div class="text-center"><div class="text-xl font-bold" style="font-family:var(--mono);color:var(--text)" x-text="7-wizardSessionCount"></div><div class="text-xs" style="color:var(--muted)">repos</div></div>
+            <div class="text-center"><div class="text-xl font-bold" style="font-family:var(--mono);color:var(--text)" x-text="wizardProg.durationWeeks+'sem'"></div><div class="text-xs" style="color:var(--muted)">durée</div></div>
+          </div>
+          <div class="px-5 pt-4 pb-28 space-y-3">
+            <template x-for="d in wizardDays" :key="d.key">
+              <div>
+                <template x-if="!wizardProg.weekSessions[d.key]">
+                  <button @click="wizardAddDay(d.key)" class="w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all active:scale-98" style="background:var(--s1);border:1.5px dashed var(--border)">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background:var(--s2)"><span class="text-xs font-bold" style="color:var(--dim)" x-text="d.label.slice(0,3).toUpperCase()"></span></div>
+                    <span class="flex-1 text-left text-sm" style="color:var(--muted)">Repos · appuie pour ajouter</span>
+                    <svg class="w-4 h-4 flex-shrink-0" style="color:var(--dim)" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                  </button>
+                </template>
+                <template x-if="wizardProg.weekSessions[d.key]">
+                  <div class="flex items-center gap-2">
+                    <button @click="wizardEditDay(d.key)" class="flex-1 flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all active:scale-98" style="background:var(--s1);border:1.5px solid var(--border)">
+                      <div class="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-xs flex-shrink-0" :style="`background:${wizardProg.color}20;color:${wizardProg.color}`" x-text="d.label.slice(0,3).toUpperCase()"></div>
+                      <div class="flex-1 text-left min-w-0">
+                        <div class="font-bold text-sm truncate" style="color:var(--text)" x-text="wizardProg.weekSessions[d.key].name||'Séance'"></div>
+                        <div class="text-xs" style="color:var(--muted)" x-text="wizardProg.weekSessions[d.key].exercises.length+' exercice(s)'"></div>
+                      </div>
+                      <span class="text-xs px-2 py-0.5 rounded-full font-semibold flex-shrink-0" :style="`background:${wizardSessionTypeColor(wizardProg.weekSessions[d.key].type)}20;color:${wizardSessionTypeColor(wizardProg.weekSessions[d.key].type)}`" x-text="wizardSessionTypeName(wizardProg.weekSessions[d.key].type)"></span>
+                    </button>
+                    <button @click="wizardRemoveDay(d.key)" class="w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-2xl active:scale-90 transition-all" style="background:var(--s1);color:var(--dim);border:1.5px solid var(--border)">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                  </div>
+                </template>
+              </div>
+            </template>
+          </div>
+        </div>
+
+        <!-- ─ ÉTAPE 3 : ÉDITER UNE SÉANCE ─ -->
+        <div x-show="wizardStep===3">
+          <template x-if="wizardDaySession">
+            <div>
+              <div class="sticky top-0 z-10 flex items-center px-4 py-3 gap-3" style="background:rgba(255,255,255,0.96);border-bottom:1px solid var(--border);backdrop-filter:blur(10px)">
+                <button @click="wizardCancelDay()" class="w-10 h-10 flex items-center justify-center rounded-full active:scale-90 transition-all" style="background:var(--s1);color:var(--muted)">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+                </button>
+                <div class="flex-1 text-center">
+                  <div class="text-xs font-bold tracking-widest" style="color:var(--muted);letter-spacing:2px" x-text="(wizardDayLabel||'').toUpperCase()"></div>
+                  <div class="text-sm font-bold" style="color:var(--text)">3/4 · Éditer la séance</div>
+                </div>
+                <button @click="wizardSaveDay()" class="px-4 py-1.5 rounded-xl text-sm font-bold transition-all active:scale-95" style="background:var(--accent);color:#fff">OK ✓</button>
+              </div>
+              <div style="height:3px;background:var(--s2)"><div style="height:100%;background:var(--accent);width:75%;transition:width 0.3s"></div></div>
+              <div class="px-5 pt-5 pb-28">
+                <div class="mb-5">
+                  <label class="block text-xs font-bold uppercase tracking-widest mb-2.5" style="color:var(--muted)">Nom de la séance</label>
+                  <input type="text" x-model="wizardDaySession.name" placeholder="ex : Push, Pull, Legs, Full Body…" class="w-full rounded-2xl px-4 py-3.5 text-sm font-medium focus:outline-none transition-all" style="background:var(--s1);border:1.5px solid var(--border);color:var(--text)" :style="wizardDaySession.name.trim()?'border-color:var(--accent)':''">
+                </div>
+                <div class="mb-5">
+                  <label class="block text-xs font-bold uppercase tracking-widest mb-3" style="color:var(--muted)">Type</label>
+                  <div class="grid grid-cols-4 gap-2">
+                    <template x-for="t in [{id:'push',label:'Push'},{id:'pull',label:'Pull'},{id:'legs',label:'Jambes'},{id:'upper',label:'Haut'},{id:'lower',label:'Bas'},{id:'fullbody',label:'Full Body'},{id:'custom',label:'Perso.'}]" :key="t.id">
+                      <button @click="wizardDaySession.type=t.id" class="py-2.5 px-1 rounded-xl text-xs font-semibold transition-all active:scale-95" :style="wizardDaySession.type===t.id?`background:${wizardSessionTypeColor(t.id)};color:#fff`:`background:var(--s1);color:var(--text);border:1.5px solid var(--border)`" x-text="t.label"></button>
+                    </template>
+                  </div>
+                </div>
+                <div class="mb-3">
+                  <label class="block text-xs font-bold uppercase tracking-widest mb-3" style="color:var(--muted)" x-text="'Exercices ('+wizardDaySession.exercises.length+')'"></label>
+                  <template x-for="(ex,exIdx) in wizardDaySession.exercises" :key="ex.id+exIdx">
+                    <div class="rounded-2xl mb-3 overflow-hidden" style="background:var(--s1);border:1px solid var(--border)">
+                      <div class="px-4 py-3 flex items-center justify-between" style="border-bottom:1px solid var(--border)">
+                        <div><div class="text-sm font-bold" style="color:var(--text)" x-text="ex.name"></div><div class="text-xs mt-0.5" :style="`color:${groupColor(ex.group)}`" x-text="ex.group"></div></div>
+                        <button @click="wizardDaySession.exercises.splice(exIdx,1)" class="p-1.5 rounded-lg active:scale-90 transition-all" style="color:var(--dim)">
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                      </div>
+                      <div class="grid grid-cols-3 gap-3 px-4 py-3">
+                        <div><div class="text-xs font-semibold mb-1.5 text-center" style="color:var(--muted)">Séries</div>
+                          <div class="flex items-center rounded-xl overflow-hidden" style="background:var(--s2);border:1px solid var(--border)">
+                            <button @click="ex.sets=Math.max(1,ex.sets-1)" class="px-2 py-2 text-base font-bold leading-none select-none" style="color:var(--muted)">−</button>
+                            <input type="number" x-model.number="ex.sets" min="1" class="flex-1 bg-transparent text-center text-sm font-bold focus:outline-none w-0 min-w-0" style="color:var(--text);font-family:var(--mono)">
+                            <button @click="ex.sets++" class="px-2 py-2 text-base font-bold leading-none select-none" style="color:var(--muted)">+</button>
+                          </div>
+                        </div>
+                        <div><div class="text-xs font-semibold mb-1.5 text-center" style="color:var(--muted)">Reps</div>
+                          <div class="flex items-center rounded-xl overflow-hidden" style="background:var(--s2);border:1px solid var(--border)">
+                            <button @click="ex.reps=Math.max(1,ex.reps-1)" class="px-2 py-2 text-base font-bold leading-none select-none" style="color:var(--muted)">−</button>
+                            <input type="number" x-model.number="ex.reps" min="1" class="flex-1 bg-transparent text-center text-sm font-bold focus:outline-none w-0 min-w-0" style="color:var(--text);font-family:var(--mono)">
+                            <button @click="ex.reps++" class="px-2 py-2 text-base font-bold leading-none select-none" style="color:var(--muted)">+</button>
+                          </div>
+                        </div>
+                        <div><div class="text-xs font-semibold mb-1.5 text-center" style="color:var(--muted)">Poids kg</div>
+                          <div class="flex items-center rounded-xl overflow-hidden" style="background:var(--s2);border:1px solid var(--border)">
+                            <button @click="ex.weight=Math.max(0,parseFloat((ex.weight-2.5).toFixed(1)))" class="px-2 py-2 text-base font-bold leading-none select-none" style="color:var(--muted)">−</button>
+                            <input type="number" x-model.number="ex.weight" step="2.5" min="0" class="flex-1 bg-transparent text-center text-sm font-bold focus:outline-none w-0 min-w-0" style="color:var(--text);font-family:var(--mono)">
+                            <button @click="ex.weight=parseFloat((ex.weight+2.5).toFixed(1))" class="px-2 py-2 text-base font-bold leading-none select-none" style="color:var(--muted)">+</button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </template>
+                  <button @click="showExercisePicker='wizard'" class="w-full font-semibold py-4 rounded-2xl text-sm transition-all active:scale-98" style="border:2px dashed var(--accent);color:var(--accent)">+ Ajouter un exercice</button>
+                </div>
+              </div>
+            </div>
+          </template>
+        </div>
+
+        <!-- ─ ÉTAPE 4 : RÉCAPITULATIF ─ -->
+        <div x-show="wizardStep===4">
+          <div class="sticky top-0 z-10 flex items-center px-4 py-3 gap-3" style="background:rgba(255,255,255,0.96);border-bottom:1px solid var(--border);backdrop-filter:blur(10px)">
+            <button @click="wizardPrevStep()" class="w-10 h-10 flex items-center justify-center rounded-full active:scale-90 transition-all" style="background:var(--s1);color:var(--muted)">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+            </button>
+            <div class="flex-1 text-center">
+              <div class="text-xs font-bold tracking-widest" style="color:var(--muted);letter-spacing:2px">NOUVEAU PROGRAMME</div>
+              <div class="text-sm font-bold" style="color:var(--text)">4/4 · Récapitulatif</div>
+            </div>
+            <div class="w-10"></div>
+          </div>
+          <div style="height:3px" :style="`background:${wizardProg.color}`"></div>
+          <div class="pb-36">
+            <!-- Hero card -->
+            <div class="mx-5 mt-6 mb-5 rounded-3xl p-6 text-white" :style="`background:${wizardProg.color};box-shadow:0 8px 32px ${wizardProg.color}50`">
+              <div class="text-xs font-bold uppercase tracking-widest mb-2 opacity-80">Programme</div>
+              <div class="text-2xl font-bold mb-1" x-text="wizardProg.name||'Sans nom'"></div>
+              <div class="text-sm opacity-80 capitalize" x-text="wizardProg.goal.replace('_',' ')+' · '+wizardProg.level"></div>
+              <div class="flex gap-5 mt-4">
+                <div><div class="text-2xl font-bold" style="font-family:var(--mono)" x-text="wizardProg.durationWeeks"></div><div class="text-xs opacity-70">semaines</div></div>
+                <div><div class="text-2xl font-bold" style="font-family:var(--mono)" x-text="wizardSessionCount"></div><div class="text-xs opacity-70">séances/sem</div></div>
+                <div><div class="text-2xl font-bold" style="font-family:var(--mono)" x-text="progDaySessions(wizardProg).reduce((s,d)=>s+d.session.exercises.length,0)"></div><div class="text-xs opacity-70">exos total</div></div>
+              </div>
+            </div>
+            <!-- Rythme hebdo -->
+            <div class="mx-5 mb-5">
+              <div class="text-xs font-bold uppercase tracking-widest mb-3" style="color:var(--muted)">Rythme hebdomadaire</div>
+              <div class="flex gap-1.5">
+                <template x-for="d in wizardDays" :key="d.key">
+                  <div class="flex-1 flex flex-col items-center gap-1">
+                    <div class="w-full rounded-xl flex items-center justify-center font-bold text-xs transition-all" style="aspect-ratio:1" :style="wizardProg.weekSessions[d.key]?`background:${wizardProg.color};color:#fff`:'background:var(--s2);color:var(--dim)'" x-text="d.label.slice(0,1)"></div>
+                    <div class="text-xs" style="color:var(--dim)" x-text="d.label.slice(0,3)"></div>
+                  </div>
+                </template>
+              </div>
+            </div>
+            <!-- Liste séances -->
+            <div class="mx-5 mb-4">
+              <div class="text-xs font-bold uppercase tracking-widest mb-3" style="color:var(--muted)">Séances prévues</div>
+              <template x-for="ds in progDaySessions(wizardProg)" :key="ds.key">
+                <div class="flex items-center gap-3 px-4 py-3.5 rounded-2xl mb-2" style="background:var(--s1);border:1px solid var(--border)">
+                  <div class="w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs flex-shrink-0" :style="`background:${wizardProg.color}20;color:${wizardProg.color}`" x-text="ds.label.slice(0,3)"></div>
+                  <div class="flex-1 min-w-0">
+                    <div class="font-bold text-sm" style="color:var(--text)" x-text="ds.session.name||'Séance'"></div>
+                    <div class="text-xs" style="color:var(--muted)" x-text="ds.session.exercises.length+' exercice(s) · '+wizardSessionTypeName(ds.session.type)"></div>
+                  </div>
+                  <button @click="wizardEditDay(ds.key)" class="p-1.5 rounded-lg transition-all" style="color:var(--muted)">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                  </button>
+                </div>
+              </template>
+              <template x-if="wizardSessionCount===0">
+                <div class="text-center py-8 rounded-2xl" style="background:var(--s1);border:1px solid var(--border)">
+                  <div class="text-3xl mb-2">📅</div>
+                  <div class="text-sm font-medium" style="color:var(--muted)">Aucune séance planifiée</div>
+                  <div class="text-xs mt-1" style="color:var(--dim)">Retourne à l'étape 2 pour en ajouter</div>
+                </div>
+              </template>
+            </div>
+            <!-- CTA sticky -->
+            <div class="fixed bottom-16 left-0 right-0 px-5 pb-4 pt-3" style="background:linear-gradient(to bottom,transparent,#fff 50%);z-index:20">
+              <button @click="saveWizardProgramme()" class="w-full py-4 rounded-2xl font-bold text-base transition-all active:scale-98" :style="`background:${wizardProg.color};color:#fff;box-shadow:0 8px 24px ${wizardProg.color}50`">
+                Activer le programme →
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </template>
   </div>
 
 </div>
@@ -972,15 +1253,40 @@
                 <span x-text="catGroup.emoji"></span><span x-text="catGroup.name"></span>
               </div>
               <template x-for="prog in catGroup.programmes" :key="prog.id">
-                <button @click="startSession(prog);showSessionPicker=false" class="w-full text-left px-4 py-3.5 bg-slate-700 hover:bg-slate-600 active:scale-[0.98] rounded-2xl mb-2 transition-all">
-                  <div class="flex items-center gap-3 mb-2">
-                    <div class="w-10 h-10 rounded-xl flex items-center justify-center text-xl" :style="`background:${categoryInfo(prog.category).color}20`" x-text="categoryInfo(prog.category).emoji"></div>
-                    <div><div class="font-semibold text-white" x-text="prog.name"></div><div class="text-xs text-slate-400" x-text="prog.exercises.length+' exercice(s)'"></div></div>
-                  </div>
-                  <div class="flex flex-wrap gap-1.5 pl-[52px]">
-                    <template x-for="ex in prog.exercises" :key="ex.id"><span class="text-xs px-2 py-0.5 rounded-full" :style="groupBadgeStyle(ex.group)" x-text="ex.group"></span></template>
-                  </div>
-                </button>
+                <div class="mb-2">
+                  <!-- Programme classique (liste plate d'exercices) -->
+                  <template x-if="!prog.weekSessions">
+                    <button @click="startSession(prog);showSessionPicker=false" class="w-full text-left px-4 py-3.5 bg-slate-700 hover:bg-slate-600 active:scale-[0.98] rounded-2xl transition-all">
+                      <div class="flex items-center gap-3 mb-2">
+                        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-xl" :style="`background:${categoryInfo(prog.category).color}20`" x-text="categoryInfo(prog.category).emoji"></div>
+                        <div><div class="font-semibold text-white" x-text="prog.name"></div><div class="text-xs text-slate-400" x-text="(prog.exercises||[]).length+' exercice(s)'"></div></div>
+                      </div>
+                      <div class="flex flex-wrap gap-1.5 pl-[52px]">
+                        <template x-for="ex in (prog.exercises||[])" :key="ex.id"><span class="text-xs px-2 py-0.5 rounded-full" :style="groupBadgeStyle(ex.group)" x-text="ex.group"></span></template>
+                      </div>
+                    </button>
+                  </template>
+                  <!-- Programme wizard (weekSessions → séances par jour) -->
+                  <template x-if="prog.weekSessions">
+                    <div class="rounded-2xl overflow-hidden bg-slate-700">
+                      <div class="px-4 py-3 flex items-center gap-3 border-b border-slate-600">
+                        <div class="w-8 h-8 rounded-xl flex items-center justify-center font-bold text-sm" :style="`background:${prog.color||'var(--accent)'}25;color:${prog.color||'var(--accent)'}`">🗓</div>
+                        <div><div class="font-semibold text-white text-sm" x-text="prog.name"></div>
+                        <div class="text-xs text-slate-400" x-text="Object.values(prog.weekSessions).filter(Boolean).length+' séances/sem'"></div></div>
+                      </div>
+                      <template x-for="ds in progDaySessions(prog)" :key="ds.key">
+                        <button @click="startSessionFromDay(prog,ds.key)" class="w-full text-left px-4 py-3 flex items-center gap-3 hover:bg-slate-600 active:scale-[0.99] transition-all border-b border-slate-600/50">
+                          <div class="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0" :style="`background:${prog.color||'var(--accent)'}15;color:${prog.color||'var(--accent)'}`" x-text="ds.label.slice(0,3)"></div>
+                          <div class="flex-1">
+                            <div class="text-sm font-semibold text-white" x-text="ds.session.name"></div>
+                            <div class="text-xs text-slate-400" x-text="ds.session.exercises.length+' exercices'"></div>
+                          </div>
+                          <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        </button>
+                      </template>
+                    </div>
+                  </template>
+                </div>
               </template>
             </div>
           </template>
@@ -1205,6 +1511,9 @@ function gymApp() {
     expandedSession: null,
     confirmDeleteId: null,
     confirmDeleteProgrammeId: null,
+    wizardStep: 0, wizardProg: null, wizardDay: null, wizardDaySession: null,
+    wizardColors: ['oklch(0.74 0.19 48)','oklch(0.88 0.20 130)','oklch(0.74 0.17 245)','oklch(0.74 0.20 8)','oklch(0.78 0.16 75)'],
+    wizardDays: [{key:'mon',label:'Lundi'},{key:'tue',label:'Mardi'},{key:'wed',label:'Mercredi'},{key:'thu',label:'Jeudi'},{key:'fri',label:'Vendredi'},{key:'sat',label:'Samedi'},{key:'sun',label:'Dimanche'}],
 
     // FAQ
     showFAQ: false,
@@ -1541,6 +1850,7 @@ function gymApp() {
       if(this.showExercisePicker==='session')     return !!this.session?.exercises.find(e=>e.id===ex.id);
       if(this.showExercisePicker==='programme')   return !!this.editingProgramme?.exercises.find(e=>e.id===ex.id);
       if(this.showExercisePicker==='editSession') return !!this.editingSession?.exercises.find(e=>e.id===ex.id);
+      if(this.showExercisePicker==='wizard')      return !!this.wizardDaySession?.exercises.find(e=>e.id===ex.id);
       return false;
     },
     pickExercise(ex){
@@ -1553,11 +1863,14 @@ function gymApp() {
       }else if(this.showExercisePicker==='editSession'&&this.editingSession){
         if(!this.editingSession.exercises.find(e=>e.id===ex.id)) this.editingSession.exercises.push({...ex,sets:[{reps:10,weight:20,done:false}]});
         this.showExercisePicker=false;
+      }else if(this.showExercisePicker==='wizard'&&this.wizardDaySession){
+        if(!this.wizardDaySession.exercises.find(e=>e.id===ex.id)) this.wizardDaySession.exercises.push({...ex,sets:3,reps:10,weight:20});
+        this.showExercisePicker=false;
       }
     },
 
     // ── Programmes ────────────────────────────────────────
-    startNewProgramme(){this.editingProgramme={id:null,name:'',category:'',exercises:[]};this.programmeView='editor';},
+    startNewProgramme(){this.startWizard();},
     editProgramme(prog){this.editingProgramme=JSON.parse(JSON.stringify(prog));this.programmeView='editor';},
     async saveProgramme(){
       if(!this.editingProgramme.name.trim()){this.showToast('Donne un nom au programme !',true);return;}
@@ -1574,6 +1887,82 @@ function gymApp() {
     async deleteProgramme(id){
       try{await this.api('DELETE',`/api/programmes/${id}`);this.programmes=this.programmes.filter(p=>p.id!==id);this.showToast('Programme supprimé');}
       catch(e){this.showToast('Erreur lors de la suppression',true);}
+    },
+
+    // ── Wizard création programme ─────────────────────────
+    startWizard(){
+      this.wizardStep=1; this.wizardDay=null; this.wizardDaySession=null;
+      this.wizardProg={id:null,name:'',goal:'hypertrophie',level:'intermédiaire',durationWeeks:12,sessionsPerWeek:3,
+        color:'oklch(0.74 0.19 48)',
+        weekSessions:{mon:null,tue:null,wed:null,thu:null,fri:null,sat:null,sun:null}};
+      this.programmeView='wizard';
+    },
+    cancelWizard(){
+      this.wizardStep=0;this.wizardProg=null;this.wizardDay=null;this.wizardDaySession=null;
+      this.programmeView='list';
+    },
+    wizardNextStep(){if(this.wizardStep<4)this.wizardStep++;},
+    wizardPrevStep(){if(this.wizardStep>1)this.wizardStep--;else this.cancelWizard();},
+    get wizardSessionCount(){
+      if(!this.wizardProg)return 0;
+      return Object.values(this.wizardProg.weekSessions).filter(Boolean).length;
+    },
+    get wizardDayLabel(){
+      if(!this.wizardDay)return '';
+      return this.wizardDays.find(d=>d.key===this.wizardDay)?.label||'';
+    },
+    wizardSessionTypeName(type){
+      const t={push:'Push',pull:'Pull',legs:'Jambes',upper:'Haut du corps',lower:'Bas du corps',fullbody:'Full Body',custom:'Personnalisé'};
+      return t[type]||type;
+    },
+    wizardSessionTypeColor(type){
+      const t={push:'#C4917A',pull:'#7A9AB5',legs:'#7AAB8A',upper:'#C4A06A',lower:'#9A8AAF',fullbody:'#B5A55A',custom:'#8A8070'};
+      return t[type]||'#8A8070';
+    },
+    wizardAddDay(day){
+      this.wizardDay=day;
+      this.wizardDaySession={name:'',type:'custom',exercises:[]};
+      this.wizardStep=3;
+    },
+    wizardRemoveDay(day){this.wizardProg.weekSessions[day]=null;},
+    wizardEditDay(day){
+      this.wizardDay=day;
+      this.wizardDaySession=JSON.parse(JSON.stringify(this.wizardProg.weekSessions[day]));
+      this.wizardStep=3;
+    },
+    wizardSaveDay(){
+      if(!this.wizardDaySession.name.trim()) this.wizardDaySession.name=this.wizardSessionTypeName(this.wizardDaySession.type);
+      this.wizardProg.weekSessions[this.wizardDay]=JSON.parse(JSON.stringify(this.wizardDaySession));
+      this.wizardDay=null;this.wizardDaySession=null;this.wizardStep=2;
+    },
+    wizardCancelDay(){this.wizardDay=null;this.wizardDaySession=null;this.wizardStep=2;},
+    async saveWizardProgramme(){
+      if(!this.wizardProg.name.trim()){this.showToast('Donne un nom au programme !',true);return;}
+      if(!this.wizardProg.id)this.wizardProg.id=Date.now().toString();
+      const firstDay=Object.values(this.wizardProg.weekSessions).find(Boolean);
+      const prog={...JSON.parse(JSON.stringify(this.wizardProg)),exercises:firstDay?.exercises||[]};
+      try{
+        await this.api('POST','/api/programmes',prog);
+        const idx=this.programmes.findIndex(p=>p.id===prog.id);
+        if(idx!==-1)this.programmes[idx]=prog;else this.programmes.push(prog);
+        this.showToast('Programme sauvegardé ✓');this.cancelWizard();
+      }catch(e){this.showToast('Erreur lors de la sauvegarde',true);}
+    },
+    startSessionFromDay(prog,dayKey){
+      const ds=prog.weekSessions?.[dayKey]; if(!ds||this.session)return;
+      const progName=`${prog.name} · ${ds.name}`;
+      const exercises=ds.exercises.map(ex=>{
+        const full=this.exercises.find(e=>e.id===ex.id)||ex;
+        return {id:ex.id,name:ex.name,group:ex.group,imageUrl:full.imageUrl||'',
+          sets:Array.from({length:ex.sets},()=>({reps:ex.reps,weight:ex.weight,done:false}))};
+      });
+      this.session={id:Date.now().toString(),date:new Date().toISOString(),programmeName:progName,exercises};
+      this.sessionSeconds=0;this._sessionTimer=setInterval(()=>this.sessionSeconds++,1000);
+      this.tab='seance';this.showSessionPicker=false;
+    },
+    progDaySessions(prog){
+      if(!prog.weekSessions)return[];
+      return this.wizardDays.filter(d=>prog.weekSessions[d.key]).map(d=>({...d,session:prog.weekSessions[d.key]}));
     },
 
     // ── Exercices ─────────────────────────────────────────
