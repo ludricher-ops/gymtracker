@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <meta name="theme-color" content="#0f172a">
+  <meta name="theme-color" content="#0d0d0d">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -15,11 +15,14 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
   <style>
     [x-cloak]{display:none!important}
     *{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
     html,body{height:100%;margin:0}
-    body{background:#0f172a;color:#f1f5f9;font-family:system-ui,-apple-system,sans-serif;overscroll-behavior:none}
+    body{background:#0d0d0d;color:#F5F0E8;font-family:'DM Sans',system-ui,-apple-system,sans-serif;overscroll-behavior:none}
     input[type="number"]{-moz-appearance:textfield}
     input[type="number"]::-webkit-outer-spin-button,
     input[type="number"]::-webkit-inner-spin-button{-webkit-appearance:none}
@@ -27,15 +30,121 @@
     .pulse-dot{animation:pulse-dot 1.5s ease-in-out infinite}
     @keyframes spin{to{transform:rotate(360deg)}}
     .spin{animation:spin .8s linear infinite}
-    select option{background:#1e293b}
+    @keyframes fadeSlideIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    .animate-in{animation:fadeSlideIn 0.25s ease forwards}
+    select option{background:#1a1a1a}
+
+    /* ── Design tokens ─────────────────────────────────── */
+    :root{
+      --gold:#C9A84C;--gold-l:#E8C56A;--bg:#0d0d0d;
+      --s1:#1a1a1a;--s1h:#242424;--s2:#222;--s3:#2a2a2a;
+      --text:#F5F0E8;--muted:#9A9080;
+      --bg-gold:rgba(201,168,76,0.15);--bg-gold2:rgba(201,168,76,0.08);
+    }
+
+    /* ── Background overrides ──────────────────────────── */
+    [class~="bg-slate-950"],[class~="bg-slate-900"][class~="fixed"][class~="inset-0"]{background-color:var(--bg)!important}
+    [class~="bg-slate-900"]{background-color:#111!important}
+    [class~="bg-slate-900\/95"]{background-color:rgba(17,17,17,0.97)!important}
+    [class~="bg-slate-900\/80"]{background-color:rgba(13,13,13,0.85)!important}
+    [class~="bg-slate-800"]{background-color:var(--s1)!important}
+    [class~="bg-slate-800\/50"]{background-color:rgba(26,26,26,0.5)!important}
+    [class~="bg-slate-700"]{background-color:var(--s2)!important}
+    [class~="bg-slate-700\/50"]{background-color:rgba(34,34,34,0.5)!important}
+    [class~="bg-slate-600"]{background-color:var(--s3)!important}
+
+    /* ── Blue → Gold ───────────────────────────────────── */
+    [class~="bg-blue-600"]{background-color:var(--gold)!important}
+    [class~="bg-blue-600\/20"]{background-color:rgba(201,168,76,0.12)!important}
+    [class~="bg-blue-400\/10"]{background-color:var(--bg-gold2)!important}
+    [class~="text-blue-400"]{color:var(--gold)!important}
+    [class~="text-blue-300"]{color:var(--gold-l)!important}
+    [class~="border-blue-500"]{border-color:var(--gold)!important}
+    [class~="shadow-blue-900\/40"]{--tw-shadow-color:rgba(201,168,76,0.18)!important}
+    [class~="hover:border-blue-500\/50"]:hover{border-color:rgba(201,168,76,0.35)!important}
+    [class~="focus:border-blue-500"]:focus{border-color:var(--gold)!important}
+    [class~="ring-blue-500"]{--tw-ring-color:var(--gold)!important}
+
+    /* ── Emerald → Muted green ─────────────────────────── */
+    [class~="bg-emerald-600"]{background-color:#5A7A60!important}
+    [class~="bg-emerald-500"]{background-color:#6B8F71!important}
+    [class~="bg-emerald-950\/40"]{background-color:rgba(90,122,96,0.2)!important}
+    [class~="bg-emerald-900\/50"]{background-color:rgba(90,122,96,0.22)!important}
+    [class~="bg-emerald-900\/70"]{background-color:rgba(90,122,96,0.4)!important}
+    [class~="text-emerald-400"]{color:#8CAE88!important}
+    [class~="text-emerald-300"]{color:#9DC49A!important}
+    [class~="shadow-emerald-900\/40"]{--tw-shadow-color:rgba(90,122,96,0.18)!important}
+    [class~="ring-emerald-500\/40"]{--tw-ring-color:rgba(90,122,96,0.3)!important}
+
+    /* ── Violet → Muted purple ─────────────────────────── */
+    [class~="text-violet-400"]{color:#9A8AAF!important}
+    [class~="bg-violet-600\/20"]{background-color:rgba(154,138,175,0.12)!important}
+    [class~="ring-violet-500"]{--tw-ring-color:#9A8AAF!important}
+
+    /* ── Orange → Muted amber ──────────────────────────── */
+    [class~="text-orange-400"]{color:#C4A06A!important}
+
+    /* ── Text overrides ────────────────────────────────── */
+    [class~="text-white"]{color:var(--text)!important}
+    [class~="text-slate-400"]{color:var(--muted)!important}
+    [class~="text-slate-300"]{color:#C8BEB0!important}
+    [class~="text-slate-500"]{color:#7A7060!important}
+    [class~="text-slate-600"]{color:#5A5048!important}
+    [class~="text-slate-200"]{color:#D8D0C4!important}
+
+    /* ── Border overrides ──────────────────────────────── */
+    [class~="border-slate-700"]{border-color:rgba(201,168,76,0.18)!important}
+    [class~="border-slate-700\/50"]{border-color:rgba(201,168,76,0.1)!important}
+    [class~="border-slate-600"]{border-color:rgba(201,168,76,0.2)!important}
+
+    /* ── Red ───────────────────────────────────────────── */
+    [class~="bg-red-600"]{background-color:#C0392B!important}
+    [class~="text-red-400"]{color:#E05A4A!important}
+    [class~="bg-red-400\/10"]{background-color:rgba(192,57,43,0.1)!important}
+
+    /* ── Hover states ──────────────────────────────────── */
+    [class~="hover:bg-blue-500"]:hover{background-color:var(--gold-l)!important}
+    [class~="hover:bg-emerald-500"]:hover{background-color:#6B8F71!important}
+    [class~="hover:bg-red-500"]:hover{background-color:#D44231!important}
+    [class~="hover:bg-slate-700"]:hover{background-color:var(--s1h)!important}
+    [class~="hover:bg-slate-600"]:hover{background-color:var(--s3)!important}
+    [class~="hover:text-white"]:hover{color:var(--text)!important}
+    [class~="hover:text-blue-400"]:hover{color:var(--gold)!important}
+    [class~="hover:text-blue-300"]:hover{color:var(--gold-l)!important}
+    [class~="hover:text-red-400"]:hover{color:#E05A4A!important}
+    [class~="hover:bg-red-400\/10"]:hover{background-color:rgba(192,57,43,0.1)!important}
+    [class~="hover:bg-blue-400\/10"]:hover{background-color:var(--bg-gold2)!important}
+    [class~="hover:border-slate-600"]:hover{border-color:rgba(201,168,76,0.25)!important}
+
+    /* ── Nav ───────────────────────────────────────────── */
+    nav.fixed{background-color:var(--bg)!important;border-top-color:rgba(201,168,76,0.2)!important}
+
+    /* ── Headings ──────────────────────────────────────── */
+    h1,h2{font-family:'Playfair Display',serif}
+
+    /* ── Inputs ────────────────────────────────────────── */
+    input[type="text"],input[type="number"],input[type="url"],select{
+      background-color:#111!important;border-color:#2a2a2a!important;color:var(--text)!important
+    }
+    input[type="text"]:focus,input[type="url"]:focus,select:focus{border-color:var(--gold)!important}
+    input::placeholder{color:#5A5048!important}
+
+    /* ── Calendar custom classes ───────────────────────── */
+    .cal-sel-session{background-color:var(--gold)!important;color:#0d0d0d!important}
+    .cal-sel{background-color:var(--s3)!important;color:var(--text)!important}
+    .cal-has{background-color:rgba(201,168,76,0.12)!important;color:var(--gold)!important;box-shadow:inset 0 0 0 1px rgba(201,168,76,0.3)}
+    .cal-today{color:var(--gold)!important;box-shadow:inset 0 0 0 1px rgba(201,168,76,0.5)}
+    .cal-empty{color:#5A5048}
+    .cal-empty:hover,.cal-today:hover{background-color:var(--s1)!important}
+    .cal-has:hover{background-color:rgba(201,168,76,0.2)!important}
   </style>
 </head>
 <body x-data="gymApp()" x-init="init()">
 
 <!-- ══ TOAST ══════════════════════════════════════════════ -->
 <div x-show="toast.show" x-cloak
-  class="fixed top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-2xl text-sm font-medium shadow-xl"
-  :class="toast.error?'bg-red-600 text-white':'bg-emerald-600 text-white'"
+  class="fixed top-4 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-2xl text-sm font-medium shadow-xl animate-in"
+  :style="toast.error ? 'background:#1a1a1a;border:1px solid rgba(192,57,43,0.35);border-left:3px solid #C0392B;color:#F5F0E8;box-shadow:0 8px 32px rgba(0,0,0,0.5)' : 'background:#1a1a1a;border:1px solid rgba(201,168,76,0.3);border-left:3px solid #C9A84C;color:#F5F0E8;box-shadow:0 8px 32px rgba(0,0,0,0.5)'"
   x-text="toast.msg"></div>
 
 <!-- ══ LOADING ════════════════════════════════════════════ -->
@@ -54,7 +163,7 @@
 <!-- ══════════════════════════════════════════════════════
      ACCUEIL
 ══════════════════════════════════════════════════════ -->
-<div x-show="tab==='accueil'" x-cloak>
+<div x-show="tab==='accueil'" x-cloak x-transition>
   <div class="px-4 pt-10 pb-4 flex items-center justify-between">
     <div><h1 class="text-2xl font-bold text-white">💪 GymTracker</h1>
     <p class="text-slate-400 text-sm mt-0.5">Suivi de tes séances</p></div>
@@ -66,9 +175,9 @@
     </div>
   </div>
   <div class="grid grid-cols-3 gap-3 px-4 mb-6">
-    <div class="bg-slate-800 rounded-2xl p-4 text-center"><div class="text-2xl font-bold text-blue-400" x-text="stats.total"></div><div class="text-xs text-slate-400 mt-1">Total</div></div>
-    <div class="bg-slate-800 rounded-2xl p-4 text-center"><div class="text-2xl font-bold text-violet-400" x-text="stats.thisWeek"></div><div class="text-xs text-slate-400 mt-1">Cette semaine</div></div>
-    <div class="bg-slate-800 rounded-2xl p-4 text-center"><div class="text-2xl font-bold text-orange-400" x-text="stats.streak+'🔥'"></div><div class="text-xs text-slate-400 mt-1">Série</div></div>
+    <div class="bg-slate-800 rounded-2xl p-4 text-center"><div class="text-2xl font-bold text-blue-400" style="font-family:'Playfair Display',serif" x-text="stats.total"></div><div class="text-xs text-slate-400 mt-1" style="letter-spacing:.06em;text-transform:uppercase;font-size:10px">Total</div></div>
+    <div class="bg-slate-800 rounded-2xl p-4 text-center"><div class="text-2xl font-bold text-blue-400" style="font-family:'Playfair Display',serif" x-text="stats.thisWeek"></div><div class="text-xs text-slate-400 mt-1" style="letter-spacing:.06em;text-transform:uppercase;font-size:10px">Cette semaine</div></div>
+    <div class="bg-slate-800 rounded-2xl p-4 text-center"><div class="text-2xl font-bold text-blue-400" style="font-family:'Playfair Display',serif" x-text="stats.streak+'🔥'"></div><div class="text-xs text-slate-400 mt-1" style="letter-spacing:.06em;text-transform:uppercase;font-size:10px">Série</div></div>
   </div>
   <div class="px-4 mb-6">
     <template x-if="!session">
@@ -109,7 +218,7 @@
 <!-- ══════════════════════════════════════════════════════
      SÉANCE EN COURS
 ══════════════════════════════════════════════════════ -->
-<div x-show="tab==='seance'" x-cloak>
+<div x-show="tab==='seance'" x-cloak x-transition>
 
   <!-- ── Pas de séance : écran de démarrage ── -->
   <template x-if="!session">
@@ -231,7 +340,7 @@
 <!-- ══════════════════════════════════════════════════════
      PROGRAMMES
 ══════════════════════════════════════════════════════ -->
-<div x-show="tab==='programmes'" x-cloak>
+<div x-show="tab==='programmes'" x-cloak x-transition>
 
   <!-- ── Liste des programmes ── -->
   <div x-show="programmeView==='list'">
@@ -445,7 +554,7 @@
 <!-- ══════════════════════════════════════════════════════
      HISTORIQUE
 ══════════════════════════════════════════════════════ -->
-<div x-show="tab==='historique'" x-cloak>
+<div x-show="tab==='historique'" x-cloak x-transition>
   <div class="px-4 pt-10 pb-4 flex items-center justify-between">
     <div>
       <h1 class="text-2xl font-bold text-white">Historique</h1>
@@ -651,7 +760,7 @@
 <!-- ══════════════════════════════════════════════════════
      PROGRESSION
 ══════════════════════════════════════════════════════ -->
-<div x-show="tab==='progression'" x-cloak>
+<div x-show="tab==='progression'" x-cloak x-transition>
   <div class="px-4 pt-10 pb-4"><h1 class="text-2xl font-bold text-white">Progression</h1><p class="text-slate-400 text-sm mt-0.5">Suivi de tes performances</p></div>
   <div class="px-4 mb-5">
     <select x-model="selectedExerciseId" @change="renderProgressChart()" class="w-full bg-slate-800 border border-slate-700 text-white rounded-2xl px-4 py-3.5 text-sm focus:outline-none focus:border-blue-500 transition-colors">
@@ -670,9 +779,9 @@
   </template>
   <div class="px-4" x-show="selectedExerciseId">
     <div class="grid grid-cols-3 gap-3 mb-5" x-show="progressStats.sessions>0">
-      <div class="bg-slate-800 rounded-2xl p-4 text-center"><div class="text-xl font-bold text-blue-400" x-text="progressStats.maxWeight+' kg'"></div><div class="text-xs text-slate-400 mt-1">Record</div></div>
-      <div class="bg-slate-800 rounded-2xl p-4 text-center"><div class="text-xl font-bold text-violet-400" x-text="progressStats.sessions"></div><div class="text-xs text-slate-400 mt-1">Séances</div></div>
-      <div class="bg-slate-800 rounded-2xl p-4 text-center"><div class="text-2xl" x-text="progressStats.trend"></div><div class="text-xs text-slate-400 mt-1">Tendance</div></div>
+      <div class="bg-slate-800 rounded-2xl p-4 text-center"><div class="text-xl font-bold text-blue-400" style="font-family:'Playfair Display',serif" x-text="progressStats.maxWeight+' kg'"></div><div class="text-xs text-slate-400 mt-1" style="letter-spacing:.06em;text-transform:uppercase;font-size:10px">Record</div></div>
+      <div class="bg-slate-800 rounded-2xl p-4 text-center"><div class="text-xl font-bold text-blue-400" style="font-family:'Playfair Display',serif" x-text="progressStats.sessions"></div><div class="text-xs text-slate-400 mt-1" style="letter-spacing:.06em;text-transform:uppercase;font-size:10px">Séances</div></div>
+      <div class="bg-slate-800 rounded-2xl p-4 text-center"><div class="text-2xl" x-text="progressStats.trend"></div><div class="text-xs text-slate-400 mt-1" style="letter-spacing:.06em;text-transform:uppercase;font-size:10px">Tendance</div></div>
     </div>
     <div class="bg-slate-800 rounded-2xl p-4 mb-4" x-show="progressStats.sessions>0"><div class="text-sm font-semibold text-slate-300 mb-4">Charge maximale par séance (kg)</div><canvas id="progressChart"></canvas></div>
     <div class="bg-slate-800 rounded-2xl p-4" x-show="progressStats.sessions>0"><div class="text-sm font-semibold text-slate-300 mb-4">Volume total par séance (kg × reps)</div><canvas id="volumeChart"></canvas></div>
@@ -935,9 +1044,9 @@ function gymApp() {
     expandedProgrammes: {},
     expandedCategories: {},
     categories: [
-      { id:'masse',     name:'Prendre de la masse', emoji:'🏋️', color:'#fb923c' },
-      { id:'collectif', name:'Sport collectif',      emoji:'⚽', color:'#34d399' },
-      { id:'exterieur', name:'Sport extérieur',      emoji:'🌿', color:'#60a5fa' },
+      { id:'masse',     name:'Prendre de la masse', emoji:'🏋️', color:'#C4A06A' },
+      { id:'collectif', name:'Sport collectif',      emoji:'⚽', color:'#7AAB8A' },
+      { id:'exterieur', name:'Sport extérieur',      emoji:'🌿', color:'#7A9AB5' },
     ],
 
     // Exercices
@@ -1049,11 +1158,11 @@ function gymApp() {
           result.push({...c, programmes: map[c.name] || map[c.id] || []});
         }
       });
-      if(map['__none__']) result.push({id:'none', name:'Sans catégorie', emoji:'📋', color:'#94a3b8', programmes:map['__none__']});
+      if(map['__none__']) result.push({id:'none', name:'Sans catégorie', emoji:'📋', color:'#8A8070', programmes:map['__none__']});
       return result;
     },
     categoryInfo(name) {
-      return this.categories.find(c=>c.name===name) || {emoji:'📋', color:'#94a3b8'};
+      return this.categories.find(c=>c.name===name) || {emoji:'📋', color:'#8A8070'};
     },
 
     // ── Computed : calendrier ─────────────────────────────
@@ -1093,11 +1202,11 @@ function gymApp() {
       const sel = this.selectedCalendarDay === day;
       const has = this.hasSession(day);
       const today = this.isToday(day);
-      if(sel && has)  return 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/40';
-      if(sel)         return 'bg-slate-600 text-white';
-      if(has)         return 'bg-emerald-900/50 text-emerald-300 ring-1 ring-emerald-500/40 hover:bg-emerald-900/70';
-      if(today)       return 'ring-1 ring-blue-500 text-blue-300 hover:bg-slate-800';
-      return 'text-slate-500 hover:bg-slate-800';
+      if(sel && has)  return 'cal-sel-session';
+      if(sel)         return 'cal-sel';
+      if(has)         return 'cal-has';
+      if(today)       return 'cal-today';
+      return 'cal-empty';
     },
     selectCalendarDay(day) { this.selectedCalendarDay = this.selectedCalendarDay===day ? null : day; },
     prevMonth() {
@@ -1129,12 +1238,12 @@ function gymApp() {
 
     // ── Helpers ───────────────────────────────────────────
     groupColor(name) {
-      const colors = { Poitrine:'#f472b6', Dos:'#34d399', 'Épaules':'#60a5fa', Biceps:'#fb923c', Triceps:'#a78bfa', Abdominaux:'#facc15' };
+      const colors = { Poitrine:'#C4917A', Dos:'#7AAB8A', 'Épaules':'#7A9AB5', Biceps:'#C4A06A', Triceps:'#9A8AAF', Abdominaux:'#B5A55A' };
       if (colors[name]) return colors[name];
       const hash = [...(name||'')].reduce((h,c)=>(h*31+c.charCodeAt(0))&0xffffffff,0);
-      return `hsl(${Math.abs(hash)%360},65%,60%)`;
+      return `hsl(${Math.abs(hash)%360},30%,55%)`;
     },
-    groupBadgeStyle(name) { const c=this.groupColor(name); return `background:${c}20;color:${c};`; },
+    groupBadgeStyle(name) { const c=this.groupColor(name); return `background:${c}22;color:${c};border:1px solid ${c}40;`; },
     get todayStr() { return new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'}); },
     get stats() {
       const total=this.sessions.length;
@@ -1302,14 +1411,14 @@ function gymApp() {
       });
       if(wD.length>0){const first=wD[0].y,last=wD[wD.length-1].y;this.progressStats={sessions:wD.length,maxWeight:Math.max(...wD.map(d=>d.y)),trend:wD.length<2?'—':last>first?'📈':last<first?'📉':'➡️'};}
       else{this.progressStats={sessions:0,maxWeight:0,trend:'—'};return;}
-      const scales={x:{ticks:{color:'#94a3b8',font:{size:11}},grid:{color:'#1e293b'}},y:{ticks:{color:'#94a3b8',font:{size:11}},grid:{color:'#1e293b'}}};
+      const scales={x:{ticks:{color:'#9A9080',font:{size:11,family:"'DM Sans',sans-serif"}},grid:{color:'rgba(255,255,255,0.04)'}},y:{ticks:{color:'#9A9080',font:{size:11,family:"'DM Sans',sans-serif"}},grid:{color:'rgba(255,255,255,0.04)'}}};
       this.$nextTick(()=>{
         if(this._progressChart)this._progressChart.destroy();
         const c1=document.getElementById('progressChart');
-        if(c1)this._progressChart=new Chart(c1,{type:'line',data:{labels:wD.map(d=>d.x),datasets:[{data:wD.map(d=>d.y),borderColor:'#60a5fa',backgroundColor:'rgba(96,165,250,0.1)',borderWidth:2.5,pointBackgroundColor:'#60a5fa',pointRadius:5,fill:true,tension:0.35}]},options:{responsive:true,plugins:{legend:{display:false}},scales}});
+        if(c1)this._progressChart=new Chart(c1,{type:'line',data:{labels:wD.map(d=>d.x),datasets:[{data:wD.map(d=>d.y),borderColor:'#C9A84C',backgroundColor:'rgba(201,168,76,0.08)',borderWidth:2.5,pointBackgroundColor:'#C9A84C',pointBorderColor:'#0d0d0d',pointBorderWidth:2,pointRadius:5,fill:true,tension:0.35}]},options:{responsive:true,plugins:{legend:{display:false}},scales}});
         if(this._volumeChart)this._volumeChart.destroy();
         const c2=document.getElementById('volumeChart');
-        if(c2)this._volumeChart=new Chart(c2,{type:'bar',data:{labels:vD.map(d=>d.x),datasets:[{data:vD.map(d=>d.y),backgroundColor:'rgba(167,139,250,0.7)',borderColor:'#a78bfa',borderWidth:2,borderRadius:6}]},options:{responsive:true,plugins:{legend:{display:false}},scales}});
+        if(c2)this._volumeChart=new Chart(c2,{type:'bar',data:{labels:vD.map(d=>d.x),datasets:[{data:vD.map(d=>d.y),backgroundColor:'rgba(201,168,76,0.65)',borderColor:'#C9A84C',borderWidth:1.5,borderRadius:6}]},options:{responsive:true,plugins:{legend:{display:false}},scales}});
       });
     }
   };
