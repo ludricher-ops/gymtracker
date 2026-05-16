@@ -17,12 +17,12 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     [x-cloak]{display:none!important}
     *{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
     html,body{height:100%;margin:0}
-    body{background:#0d0d0d;color:#F5F0E8;font-family:'DM Sans',system-ui,-apple-system,sans-serif;overscroll-behavior:none}
+    body{background:#1b1916;color:#f7f5f0;font-family:'Space Grotesk',system-ui,-apple-system,sans-serif;overscroll-behavior:none}
     input[type="number"]{-moz-appearance:textfield}
     input[type="number"]::-webkit-outer-spin-button,
     input[type="number"]::-webkit-inner-spin-button{-webkit-appearance:none}
@@ -36,107 +36,105 @@
 
     /* ── Design tokens ─────────────────────────────────── */
     :root{
-      --gold:#C9A84C;--gold-l:#E8C56A;--bg:#0d0d0d;
-      --s1:#1a1a1a;--s1h:#242424;--s2:#222;--s3:#2a2a2a;
-      --text:#F5F0E8;--muted:#9A9080;
-      --bg-gold:rgba(201,168,76,0.15);--bg-gold2:rgba(201,168,76,0.08);
+      --accent:oklch(0.88 0.20 130);--accent-ink:#0f1a03;
+      --bg:#1b1916;--s1:#28231e;--s1h:#332d26;--s2:#332d26;--s3:#3d352b;
+      --text:#f7f5f0;--muted:#8a7f73;--dim:#5a5048;
+      --border:#3d352b;
+      --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,monospace;
     }
 
     /* ── Background overrides ──────────────────────────── */
     [class~="bg-slate-950"],[class~="bg-slate-900"][class~="fixed"][class~="inset-0"]{background-color:var(--bg)!important}
-    [class~="bg-slate-900"]{background-color:#111!important}
-    [class~="bg-slate-900\/95"]{background-color:rgba(17,17,17,0.97)!important}
-    [class~="bg-slate-900\/80"]{background-color:rgba(13,13,13,0.85)!important}
+    [class~="bg-slate-900"]{background-color:#1e1914!important}
+    [class~="bg-slate-900\/95"]{background-color:rgba(28,24,19,0.97)!important}
+    [class~="bg-slate-900\/80"]{background-color:rgba(27,25,22,0.88)!important}
     [class~="bg-slate-800"]{background-color:var(--s1)!important}
-    [class~="bg-slate-800\/50"]{background-color:rgba(26,26,26,0.5)!important}
+    [class~="bg-slate-800\/50"]{background-color:rgba(40,35,30,0.5)!important}
     [class~="bg-slate-700"]{background-color:var(--s2)!important}
-    [class~="bg-slate-700\/50"]{background-color:rgba(34,34,34,0.5)!important}
+    [class~="bg-slate-700\/50"]{background-color:rgba(51,45,38,0.5)!important}
     [class~="bg-slate-600"]{background-color:var(--s3)!important}
 
-    /* ── Blue → Gold ───────────────────────────────────── */
-    [class~="bg-blue-600"]{background-color:var(--gold)!important}
-    [class~="bg-blue-600\/20"]{background-color:rgba(201,168,76,0.12)!important}
-    [class~="bg-blue-400\/10"]{background-color:var(--bg-gold2)!important}
-    [class~="text-blue-400"]{color:var(--gold)!important}
-    [class~="text-blue-300"]{color:var(--gold-l)!important}
-    [class~="border-blue-500"]{border-color:var(--gold)!important}
-    [class~="shadow-blue-900\/40"]{--tw-shadow-color:rgba(201,168,76,0.18)!important}
-    [class~="hover:border-blue-500\/50"]:hover{border-color:rgba(201,168,76,0.35)!important}
-    [class~="focus:border-blue-500"]:focus{border-color:var(--gold)!important}
-    [class~="ring-blue-500"]{--tw-ring-color:var(--gold)!important}
+    /* ── Blue → Accent lime ────────────────────────────── */
+    [class~="bg-blue-600"]{background-color:var(--accent)!important;color:var(--accent-ink)!important}
+    [class~="bg-blue-600\/20"]{background-color:oklch(0.88 0.20 130 / 0.12)!important}
+    [class~="bg-blue-400\/10"]{background-color:oklch(0.88 0.20 130 / 0.08)!important}
+    [class~="text-blue-400"]{color:var(--accent)!important}
+    [class~="text-blue-300"]{color:oklch(0.92 0.18 130)!important}
+    [class~="border-blue-500"]{border-color:var(--accent)!important}
+    [class~="shadow-blue-900\/40"]{--tw-shadow-color:oklch(0.88 0.20 130 / 0.15)!important}
+    [class~="hover:border-blue-500\/50"]:hover{border-color:oklch(0.88 0.20 130 / 0.4)!important}
+    [class~="focus:border-blue-500"]:focus{border-color:var(--accent)!important}
+    [class~="ring-blue-500"]{--tw-ring-color:var(--accent)!important}
 
-    /* ── Emerald → Muted green ─────────────────────────── */
-    [class~="bg-emerald-600"]{background-color:#5A7A60!important}
-    [class~="bg-emerald-500"]{background-color:#6B8F71!important}
-    [class~="bg-emerald-950\/40"]{background-color:rgba(90,122,96,0.2)!important}
-    [class~="bg-emerald-900\/50"]{background-color:rgba(90,122,96,0.22)!important}
-    [class~="bg-emerald-900\/70"]{background-color:rgba(90,122,96,0.4)!important}
-    [class~="text-emerald-400"]{color:#8CAE88!important}
-    [class~="text-emerald-300"]{color:#9DC49A!important}
-    [class~="shadow-emerald-900\/40"]{--tw-shadow-color:rgba(90,122,96,0.18)!important}
-    [class~="ring-emerald-500\/40"]{--tw-ring-color:rgba(90,122,96,0.3)!important}
+    /* ── Emerald → accent dim ──────────────────────────── */
+    [class~="bg-emerald-600"]{background-color:oklch(0.55 0.14 130)!important}
+    [class~="bg-emerald-500"]{background-color:oklch(0.62 0.15 130)!important}
+    [class~="bg-emerald-950\/40"]{background-color:oklch(0.88 0.20 130 / 0.12)!important}
+    [class~="bg-emerald-900\/50"]{background-color:oklch(0.88 0.20 130 / 0.15)!important}
+    [class~="bg-emerald-900\/70"]{background-color:oklch(0.88 0.20 130 / 0.25)!important}
+    [class~="text-emerald-400"]{color:oklch(0.75 0.18 130)!important}
+    [class~="text-emerald-300"]{color:oklch(0.82 0.16 130)!important}
+    [class~="ring-emerald-500\/40"]{--tw-ring-color:oklch(0.88 0.20 130 / 0.3)!important}
 
-    /* ── Violet → Muted purple ─────────────────────────── */
-    [class~="text-violet-400"]{color:#9A8AAF!important}
-    [class~="bg-violet-600\/20"]{background-color:rgba(154,138,175,0.12)!important}
-    [class~="ring-violet-500"]{--tw-ring-color:#9A8AAF!important}
+    /* ── Violet / Orange → warm muted ─────────────────── */
+    [class~="text-violet-400"]{color:oklch(0.72 0.10 280)!important}
+    [class~="bg-violet-600\/20"]{background-color:oklch(0.72 0.10 280 / 0.12)!important}
+    [class~="ring-violet-500"]{--tw-ring-color:oklch(0.72 0.10 280)!important}
+    [class~="text-orange-400"]{color:oklch(0.76 0.14 60)!important}
 
-    /* ── Orange → Muted amber ──────────────────────────── */
-    [class~="text-orange-400"]{color:#C4A06A!important}
-
-    /* ── Text overrides ────────────────────────────────── */
+    /* ── Text ──────────────────────────────────────────── */
     [class~="text-white"]{color:var(--text)!important}
     [class~="text-slate-400"]{color:var(--muted)!important}
-    [class~="text-slate-300"]{color:#C8BEB0!important}
-    [class~="text-slate-500"]{color:#7A7060!important}
-    [class~="text-slate-600"]{color:#5A5048!important}
-    [class~="text-slate-200"]{color:#D8D0C4!important}
+    [class~="text-slate-300"]{color:#c0b8af!important}
+    [class~="text-slate-500"]{color:var(--dim)!important}
+    [class~="text-slate-600"]{color:#453e38!important}
+    [class~="text-slate-200"]{color:#d8d0c4!important}
 
-    /* ── Border overrides ──────────────────────────────── */
-    [class~="border-slate-700"]{border-color:rgba(201,168,76,0.18)!important}
-    [class~="border-slate-700\/50"]{border-color:rgba(201,168,76,0.1)!important}
-    [class~="border-slate-600"]{border-color:rgba(201,168,76,0.2)!important}
+    /* ── Borders ───────────────────────────────────────── */
+    [class~="border-slate-700"]{border-color:var(--border)!important}
+    [class~="border-slate-700\/50"]{border-color:rgba(61,53,43,0.6)!important}
+    [class~="border-slate-600"]{border-color:#4a4038!important}
 
     /* ── Red ───────────────────────────────────────────── */
-    [class~="bg-red-600"]{background-color:#C0392B!important}
-    [class~="text-red-400"]{color:#E05A4A!important}
+    [class~="bg-red-600"]{background-color:#c0392b!important}
+    [class~="text-red-400"]{color:#e05a4a!important}
     [class~="bg-red-400\/10"]{background-color:rgba(192,57,43,0.1)!important}
 
-    /* ── Hover states ──────────────────────────────────── */
-    [class~="hover:bg-blue-500"]:hover{background-color:var(--gold-l)!important}
-    [class~="hover:bg-emerald-500"]:hover{background-color:#6B8F71!important}
-    [class~="hover:bg-red-500"]:hover{background-color:#D44231!important}
+    /* ── Hovers ────────────────────────────────────────── */
+    [class~="hover:bg-blue-500"]:hover{background-color:oklch(0.92 0.18 130)!important;color:var(--accent-ink)!important}
+    [class~="hover:bg-emerald-500"]:hover{background-color:oklch(0.62 0.15 130)!important}
+    [class~="hover:bg-red-500"]:hover{background-color:#d44231!important}
     [class~="hover:bg-slate-700"]:hover{background-color:var(--s1h)!important}
     [class~="hover:bg-slate-600"]:hover{background-color:var(--s3)!important}
     [class~="hover:text-white"]:hover{color:var(--text)!important}
-    [class~="hover:text-blue-400"]:hover{color:var(--gold)!important}
-    [class~="hover:text-blue-300"]:hover{color:var(--gold-l)!important}
-    [class~="hover:text-red-400"]:hover{color:#E05A4A!important}
+    [class~="hover:text-blue-400"]:hover{color:var(--accent)!important}
+    [class~="hover:text-blue-300"]:hover{color:oklch(0.92 0.18 130)!important}
+    [class~="hover:text-red-400"]:hover{color:#e05a4a!important}
     [class~="hover:bg-red-400\/10"]:hover{background-color:rgba(192,57,43,0.1)!important}
-    [class~="hover:bg-blue-400\/10"]:hover{background-color:var(--bg-gold2)!important}
-    [class~="hover:border-slate-600"]:hover{border-color:rgba(201,168,76,0.25)!important}
+    [class~="hover:bg-blue-400\/10"]:hover{background-color:oklch(0.88 0.20 130 / 0.08)!important}
+    [class~="hover:border-slate-600"]:hover{border-color:#4a4038!important}
 
     /* ── Nav ───────────────────────────────────────────── */
-    nav.fixed{background-color:var(--bg)!important;border-top-color:rgba(201,168,76,0.2)!important}
+    nav.fixed{background-color:var(--bg)!important;border-top-color:var(--border)!important}
 
-    /* ── Headings ──────────────────────────────────────── */
-    h1,h2{font-family:'Playfair Display',serif}
+    /* ── Fonts ─────────────────────────────────────────── */
+    h1,h2{font-family:'Space Grotesk',system-ui,sans-serif}
 
     /* ── Inputs ────────────────────────────────────────── */
     input[type="text"],input[type="number"],input[type="url"],select{
-      background-color:#111!important;border-color:#2a2a2a!important;color:var(--text)!important
+      background-color:#221e1a!important;border-color:var(--border)!important;color:var(--text)!important
     }
-    input[type="text"]:focus,input[type="url"]:focus,select:focus{border-color:var(--gold)!important}
-    input::placeholder{color:#5A5048!important}
+    input[type="text"]:focus,input[type="url"]:focus,select:focus{border-color:var(--accent)!important}
+    input::placeholder{color:var(--dim)!important}
 
-    /* ── Calendar custom classes ───────────────────────── */
-    .cal-sel-session{background-color:var(--gold)!important;color:#0d0d0d!important}
+    /* ── Calendar classes ──────────────────────────────── */
+    .cal-sel-session{background-color:var(--accent)!important;color:var(--accent-ink)!important}
     .cal-sel{background-color:var(--s3)!important;color:var(--text)!important}
-    .cal-has{background-color:rgba(201,168,76,0.12)!important;color:var(--gold)!important;box-shadow:inset 0 0 0 1px rgba(201,168,76,0.3)}
-    .cal-today{color:var(--gold)!important;box-shadow:inset 0 0 0 1px rgba(201,168,76,0.5)}
-    .cal-empty{color:#5A5048}
+    .cal-has{background-color:oklch(0.88 0.20 130 / 0.15)!important;color:var(--accent)!important;box-shadow:inset 0 0 0 1px oklch(0.88 0.20 130 / 0.35)}
+    .cal-today{color:var(--accent)!important;box-shadow:inset 0 0 0 1px oklch(0.88 0.20 130 / 0.55)}
+    .cal-empty{color:var(--dim)}
     .cal-empty:hover,.cal-today:hover{background-color:var(--s1)!important}
-    .cal-has:hover{background-color:rgba(201,168,76,0.2)!important}
+    .cal-has:hover{background-color:oklch(0.88 0.20 130 / 0.22)!important}
   </style>
 </head>
 <body x-data="gymApp()" x-init="init()">
@@ -144,7 +142,7 @@
 <!-- ══ TOAST ══════════════════════════════════════════════ -->
 <div x-show="toast.show" x-cloak
   class="fixed top-4 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-2xl text-sm font-medium shadow-xl animate-in"
-  :style="toast.error ? 'background:#1a1a1a;border:1px solid rgba(192,57,43,0.35);border-left:3px solid #C0392B;color:#F5F0E8;box-shadow:0 8px 32px rgba(0,0,0,0.5)' : 'background:#1a1a1a;border:1px solid rgba(201,168,76,0.3);border-left:3px solid #C9A84C;color:#F5F0E8;box-shadow:0 8px 32px rgba(0,0,0,0.5)'"
+  :style="toast.error ? 'background:var(--s1);border:1px solid rgba(192,57,43,0.35);border-left:3px solid #C0392B;color:var(--text);box-shadow:0 8px 32px rgba(0,0,0,0.5)' : 'background:var(--s1);border:1px solid oklch(0.88 0.20 130 / 0.3);border-left:3px solid oklch(0.88 0.20 130);color:var(--text);box-shadow:0 8px 32px rgba(0,0,0,0.5)'"
   x-text="toast.msg"></div>
 
 <!-- ══ LOADING ════════════════════════════════════════════ -->
@@ -163,53 +161,97 @@
 <!-- ══════════════════════════════════════════════════════
      ACCUEIL
 ══════════════════════════════════════════════════════ -->
-<div x-show="tab==='accueil'" x-cloak x-transition>
-  <div class="px-4 pt-10 pb-4 flex items-center justify-between">
-    <div><h1 class="text-2xl font-bold text-white">💪 GymTracker</h1>
-    <p class="text-slate-400 text-sm mt-0.5">Suivi de tes séances</p></div>
-    <div class="flex items-center gap-3">
-      <div class="text-right text-xs text-slate-500 max-w-[130px]" x-text="todayStr"></div>
-      <button @click="showFAQ=true" class="w-8 h-8 rounded-full bg-slate-700 hover:bg-slate-600 flex items-center justify-center text-slate-400 hover:text-white transition-colors flex-shrink-0" title="Aide">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" stroke-linejoin="round" d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3m.08 4h.01"/></svg>
-      </button>
+<div x-show="tab==='accueil'" x-cloak x-transition class="animate-in">
+
+  <!-- ── Greeting header ── -->
+  <div class="px-4 pt-12 pb-5 flex items-start justify-between">
+    <div>
+      <div class="text-xs font-semibold tracking-[0.14em] uppercase mb-1.5" style="color:var(--muted)" x-text="todayShort"></div>
+      <div class="text-[2rem] font-bold tracking-tight leading-none" style="color:var(--text)">Salut Ludo.</div>
+    </div>
+    <button @click="showFAQ=true" class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0 mt-1 transition-colors active:scale-95" style="background:var(--s2);color:var(--muted)">?</button>
+  </div>
+
+  <!-- ── Streak strip ── -->
+  <div class="mx-4 mb-4 px-4 py-3 rounded-2xl flex items-center gap-3" style="background:var(--s1);border:1px solid var(--border)">
+    <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style="background:oklch(0.88 0.20 130 / 0.15)">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" style="color:var(--accent)"><path d="M13 2L4.5 13.5H11l-1 8.5 8.5-11.5H13L13 2z"/></svg>
+    </div>
+    <div class="flex-1 min-w-0">
+      <div class="text-sm font-semibold mb-1.5" style="color:var(--text)" x-text="stats.streak + (stats.streak > 1 ? ' jours' : ' jour') + ' d\'affilée'"></div>
+      <div class="flex gap-1">
+        <template x-for="(active, i) in streakDays()" :key="i">
+          <div class="h-1.5 flex-1 rounded-full" :style="active ? 'background:var(--accent)' : 'background:var(--s3)'"></div>
+        </template>
+      </div>
     </div>
   </div>
-  <div class="grid grid-cols-3 gap-3 px-4 mb-6">
-    <div class="bg-slate-800 rounded-2xl p-4 text-center"><div class="text-2xl font-bold text-blue-400" style="font-family:'Playfair Display',serif" x-text="stats.total"></div><div class="text-xs text-slate-400 mt-1" style="letter-spacing:.06em;text-transform:uppercase;font-size:10px">Total</div></div>
-    <div class="bg-slate-800 rounded-2xl p-4 text-center"><div class="text-2xl font-bold text-blue-400" style="font-family:'Playfair Display',serif" x-text="stats.thisWeek"></div><div class="text-xs text-slate-400 mt-1" style="letter-spacing:.06em;text-transform:uppercase;font-size:10px">Cette semaine</div></div>
-    <div class="bg-slate-800 rounded-2xl p-4 text-center"><div class="text-2xl font-bold text-blue-400" style="font-family:'Playfair Display',serif" x-text="stats.streak+'🔥'"></div><div class="text-xs text-slate-400 mt-1" style="letter-spacing:.06em;text-transform:uppercase;font-size:10px">Série</div></div>
-  </div>
-  <div class="px-4 mb-6">
+
+  <!-- ── Hero card ── -->
+  <div class="mx-4 mb-5">
     <template x-if="!session">
-      <button @click="openSessionPicker()" class="w-full bg-blue-600 hover:bg-blue-500 active:scale-95 text-white font-bold py-5 rounded-2xl text-lg transition-all shadow-lg shadow-blue-900/40">🚀 Démarrer une séance</button>
+      <div>
+        <template x-if="programmes.length > 0">
+          <div class="rounded-2xl p-5 relative overflow-hidden" style="background:var(--accent)">
+            <div class="text-[10px] font-bold tracking-[0.12em] uppercase mb-1" style="color:var(--accent-ink);opacity:0.6" x-text="categoryInfo(programmes[0].category).emoji + ' ' + (programmes[0].category || 'Programme')"></div>
+            <div class="text-xl font-bold mb-0.5 leading-tight" style="color:var(--accent-ink)" x-text="programmes[0].name"></div>
+            <div class="text-sm mb-4" style="color:var(--accent-ink);opacity:0.65" x-text="programmes[0].exercises.length + ' exercice' + (programmes[0].exercises.length > 1 ? 's' : '')"></div>
+            <div class="flex gap-2">
+              <button @click="startSession(programmes[0])" class="px-5 py-2.5 rounded-xl text-sm font-bold active:scale-95 transition-all" style="background:var(--accent-ink);color:var(--accent)">Démarrer →</button>
+              <button @click="openSessionPicker()" class="px-4 py-2.5 rounded-xl text-sm font-semibold active:scale-95 transition-all" style="background:rgba(0,0,0,0.15);color:var(--accent-ink)">Autre</button>
+            </div>
+          </div>
+        </template>
+        <template x-if="programmes.length === 0">
+          <button @click="startSession(null)" class="w-full py-5 rounded-2xl text-base font-bold active:scale-95 transition-all" style="background:var(--accent);color:var(--accent-ink)">🚀 Démarrer une séance libre</button>
+        </template>
+      </div>
     </template>
     <template x-if="session">
-      <button @click="tab='seance'" class="w-full bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-bold py-5 rounded-2xl text-lg transition-all shadow-lg shadow-emerald-900/40 flex items-center justify-center gap-3">
-        <span class="w-2.5 h-2.5 bg-white rounded-full pulse-dot"></span>Séance en cours — reprendre
+      <button @click="tab='seance'" class="w-full flex items-center gap-3 px-5 py-4 rounded-2xl active:scale-95 transition-all" style="background:oklch(0.55 0.14 130);color:#f0fff0">
+        <span class="w-2.5 h-2.5 rounded-full bg-white pulse-dot flex-shrink-0"></span>
+        <span class="font-bold text-base">Séance en cours — reprendre</span>
       </button>
     </template>
   </div>
-  <div class="px-4">
-    <h2 class="text-base font-semibold text-slate-300 mb-3">Dernières séances</h2>
+
+  <!-- ── Stats grid ── -->
+  <div class="grid grid-cols-3 gap-2.5 px-4 mb-6">
+    <div class="rounded-2xl p-3 text-center" style="background:var(--s1);border:1px solid var(--border)">
+      <div class="text-2xl font-bold leading-none mb-1" style="font-family:var(--mono);color:var(--accent)" x-text="stats.thisWeek"></div>
+      <div class="font-semibold tracking-[0.1em] uppercase" style="font-size:9px;color:var(--muted)">Séances</div>
+    </div>
+    <div class="rounded-2xl p-3 text-center" style="background:var(--s1);border:1px solid var(--border)">
+      <div class="text-2xl font-bold leading-none mb-1" style="font-family:var(--mono);color:var(--accent)" x-text="weekVolume"></div>
+      <div class="font-semibold tracking-[0.1em] uppercase" style="font-size:9px;color:var(--muted)">Vol. kg</div>
+    </div>
+    <div class="rounded-2xl p-3 text-center" style="background:var(--s1);border:1px solid var(--border)">
+      <div class="text-2xl font-bold leading-none mb-1" style="font-family:var(--mono);color:var(--accent)" x-text="weekTime"></div>
+      <div class="font-semibold tracking-[0.1em] uppercase" style="font-size:9px;color:var(--muted)">Temps</div>
+    </div>
+  </div>
+
+  <!-- ── Recent sessions ── -->
+  <div class="px-4 pb-6">
+    <div class="font-semibold tracking-[0.12em] uppercase mb-3" style="font-size:10px;color:var(--muted)">Dernières séances</div>
     <template x-if="sessions.length===0">
-      <div class="text-center py-10 text-slate-600"><div class="text-5xl mb-3">🏋️</div><p class="font-medium">Aucune séance enregistrée</p><p class="text-sm mt-1">Lance ta première séance !</p></div>
+      <div class="text-center py-10" style="color:var(--dim)">
+        <div class="text-5xl mb-3">🏋️</div>
+        <p class="font-medium" style="color:var(--muted)">Aucune séance enregistrée</p>
+        <p class="text-sm mt-1">Lance ta première séance !</p>
+      </div>
     </template>
-    <template x-for="s in sessions.slice(0,3)" :key="s.id">
-      <div class="bg-slate-800 rounded-2xl p-4 mb-3 border border-slate-700/50">
-        <div class="flex justify-between items-start mb-2">
-          <div class="font-semibold text-white text-sm capitalize" x-text="formatDate(s.date)"></div>
-          <div class="text-xs text-slate-500 bg-slate-700/50 px-2 py-0.5 rounded-full" x-text="formatTime(s.date)"></div>
+    <template x-for="s in sessions.slice(0,5)" :key="s.id">
+      <div class="flex items-center gap-3 py-3" style="border-bottom:1px solid var(--border)">
+        <div class="w-11 flex-shrink-0 rounded-xl py-1.5 text-center" style="background:var(--s2)">
+          <div class="font-bold tracking-wider uppercase" style="font-size:9px;color:var(--muted)" x-text="new Date(s.date).toLocaleDateString('fr-FR',{weekday:'short'}).replace('.','').slice(0,3).toUpperCase()"></div>
+          <div class="text-lg font-bold leading-tight" style="font-family:var(--mono);color:var(--text)" x-text="new Date(s.date).getDate()"></div>
         </div>
-        <div class="text-xs text-slate-400 mb-2">
-          <span x-text="s.exercises.length+' exercice(s)'"></span><span class="mx-2 text-slate-600">·</span>
-          <span x-text="formatDuration(s.duration)"></span><span class="mx-2 text-slate-600">·</span>
-          <span x-text="totalVolume(s)+' kg soulevés'"></span>
+        <div class="flex-1 min-w-0">
+          <div class="font-semibold text-sm truncate" style="color:var(--text)" x-text="s.programmeName || 'Séance libre'"></div>
+          <div class="text-xs mt-0.5" style="color:var(--muted)" x-text="formatDuration(s.duration) + ' · ' + totalVolume(s) + ' kg'"></div>
         </div>
-        <div class="flex flex-wrap gap-1.5">
-          <template x-for="ex in s.exercises" :key="ex.id">
-            <span class="text-xs px-2 py-0.5 rounded-full" :style="groupBadgeStyle(ex.group)" x-text="ex.group"></span>
-          </template>
-        </div>
+        <svg class="w-4 h-4 flex-shrink-0" style="color:var(--dim)" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
       </div>
     </template>
   </div>
@@ -1267,6 +1309,7 @@ function gymApp() {
     },
     groupBadgeStyle(name) { const c=this.groupColor(name); return `background:${c}22;color:${c};border:1px solid ${c}40;`; },
     get todayStr() { return new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'}); },
+    get todayShort() { return new Date().toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'}).toUpperCase().replace(/\./g,''); },
     get stats() {
       const total=this.sessions.length;
       const thisWeek=this.sessions.filter(s=>new Date(s.date).getTime()>Date.now()-7*864e5).length;
@@ -1274,6 +1317,23 @@ function gymApp() {
       let streak=0; const d=new Date(); d.setHours(0,0,0,0);
       while(days.has(d.toDateString())){streak++;d.setDate(d.getDate()-1);}
       return {total,thisWeek,streak};
+    },
+    streakDays(){
+      const days=new Set(this.sessions.map(s=>new Date(s.date).toDateString()));
+      const result=[]; const d=new Date(); d.setHours(0,0,0,0);
+      for(let i=6;i>=0;i--){const t=new Date(d);t.setDate(d.getDate()-i);result.push(days.has(t.toDateString()));}
+      return result;
+    },
+    get weekVolume(){
+      const cutoff=Date.now()-7*864e5; let v=0;
+      this.sessions.filter(s=>new Date(s.date).getTime()>cutoff).forEach(s=>s.exercises.forEach(ex=>ex.sets.forEach(set=>{if(set.done)v+=set.weight*set.reps;})));
+      if(!v)return'0'; return v>=1000?(v/1000).toFixed(1)+'t':Math.round(v).toLocaleString('fr-FR');
+    },
+    get weekTime(){
+      const cutoff=Date.now()-7*864e5;
+      const total=this.sessions.filter(s=>new Date(s.date).getTime()>cutoff).reduce((sum,s)=>sum+(s.duration||0),0);
+      if(!total)return'0'; const h=Math.floor(total/3600),m=Math.floor((total%3600)/60);
+      return h>0?`${h}h${m>0?String(m).padStart(2,'0'):''}`:m+'m';
     },
     totalVolume(s){let v=0;s.exercises.forEach(ex=>ex.sets.forEach(s=>{if(s.done)v+=s.weight*s.reps;}));return v.toLocaleString('fr-FR');},
     showToast(msg,error=false){this.toast={show:true,msg,error};setTimeout(()=>{this.toast.show=false;},2500);},
@@ -1437,14 +1497,15 @@ function gymApp() {
       });
       if(wD.length>0){const first=wD[0].y,last=wD[wD.length-1].y;this.progressStats={sessions:wD.length,maxWeight:Math.max(...wD.map(d=>d.y)),trend:wD.length<2?'—':last>first?'📈':last<first?'📉':'➡️'};}
       else{this.progressStats={sessions:0,maxWeight:0,trend:'—'};return;}
-      const scales={x:{ticks:{color:'#9A9080',font:{size:11,family:"'DM Sans',sans-serif"}},grid:{color:'rgba(255,255,255,0.04)'}},y:{ticks:{color:'#9A9080',font:{size:11,family:"'DM Sans',sans-serif"}},grid:{color:'rgba(255,255,255,0.04)'}}};
+      const accent=getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()||'oklch(0.88 0.20 130)';
+      const scales={x:{ticks:{color:'#8a7f73',font:{size:11,family:"'Space Grotesk',sans-serif"}},grid:{color:'rgba(255,255,255,0.04)'}},y:{ticks:{color:'#8a7f73',font:{size:11,family:"'Space Grotesk',sans-serif"}},grid:{color:'rgba(255,255,255,0.04)'}}};
       this.$nextTick(()=>{
         if(this._progressChart)this._progressChart.destroy();
         const c1=document.getElementById('progressChart');
-        if(c1)this._progressChart=new Chart(c1,{type:'line',data:{labels:wD.map(d=>d.x),datasets:[{data:wD.map(d=>d.y),borderColor:'#C9A84C',backgroundColor:'rgba(201,168,76,0.08)',borderWidth:2.5,pointBackgroundColor:'#C9A84C',pointBorderColor:'#0d0d0d',pointBorderWidth:2,pointRadius:5,fill:true,tension:0.35}]},options:{responsive:true,plugins:{legend:{display:false}},scales}});
+        if(c1)this._progressChart=new Chart(c1,{type:'line',data:{labels:wD.map(d=>d.x),datasets:[{data:wD.map(d=>d.y),borderColor:accent,backgroundColor:'oklch(0.88 0.20 130 / 0.08)',borderWidth:2.5,pointBackgroundColor:accent,pointBorderColor:'#1b1916',pointBorderWidth:2,pointRadius:5,fill:true,tension:0.35}]},options:{responsive:true,plugins:{legend:{display:false}},scales}});
         if(this._volumeChart)this._volumeChart.destroy();
         const c2=document.getElementById('volumeChart');
-        if(c2)this._volumeChart=new Chart(c2,{type:'bar',data:{labels:vD.map(d=>d.x),datasets:[{data:vD.map(d=>d.y),backgroundColor:'rgba(201,168,76,0.65)',borderColor:'#C9A84C',borderWidth:1.5,borderRadius:6}]},options:{responsive:true,plugins:{legend:{display:false}},scales}});
+        if(c2)this._volumeChart=new Chart(c2,{type:'bar',data:{labels:vD.map(d=>d.x),datasets:[{data:vD.map(d=>d.y),backgroundColor:'oklch(0.88 0.20 130 / 0.65)',borderColor:accent,borderWidth:1.5,borderRadius:6}]},options:{responsive:true,plugins:{legend:{display:false}},scales}});
       });
     }
   };
