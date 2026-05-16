@@ -317,12 +317,16 @@
   <!-- ── Séance en cours ── -->
   <template x-if="session">
     <div>
-  <div class="sticky top-0 z-10 bg-slate-900/95 backdrop-blur border-b border-slate-700 px-4 py-3 flex items-center justify-between">
+  <div class="sticky top-0 z-10 backdrop-blur px-4 py-3 flex items-center justify-between" style="background:rgba(27,25,22,0.95);border-bottom:1px solid var(--border)">
     <div>
-      <div class="text-xs text-slate-400 mb-0.5" x-text="session?.programmeName?'📋 '+session.programmeName:'Séance libre'"></div>
-      <div class="text-2xl font-mono font-bold text-blue-400" x-text="formatDuration(sessionSeconds)"></div>
+      <div class="text-xs mb-0.5" style="color:var(--muted)" x-text="session?.programmeName?'📋 '+session.programmeName:'Séance libre'"></div>
+      <div class="text-2xl font-bold" style="font-family:var(--mono);color:var(--accent)" x-text="formatDuration(sessionSeconds)"></div>
     </div>
-    <button @click="confirmFinish=true" class="bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-semibold px-5 py-2.5 rounded-xl text-sm transition-all">✓ Terminer</button>
+    <button @click="confirmFinish=true" class="active:scale-95 font-semibold px-5 py-2.5 rounded-xl text-sm transition-all" style="background:oklch(0.55 0.14 130);color:#f0fff0">✓ Terminer</button>
+  </div>
+  <!-- Progress bar -->
+  <div class="h-0.5" style="background:var(--border)">
+    <div class="h-full transition-all duration-500 ease-out" style="background:var(--accent)" :style="`width:${sessionProgress*100}%`"></div>
   </div>
   <div class="px-4 pt-4">
     <template x-if="session.exercises.length===0">
@@ -596,54 +600,75 @@
 <!-- ══════════════════════════════════════════════════════
      HISTORIQUE
 ══════════════════════════════════════════════════════ -->
-<div x-show="tab==='historique'" x-cloak x-transition>
-  <div class="px-4 pt-10 pb-4 flex items-center justify-between">
+<div x-show="tab==='historique'" x-cloak x-transition class="animate-in">
+  <div class="px-4 pt-12 pb-4 flex items-start justify-between">
     <div>
-      <h1 class="text-2xl font-bold text-white">Historique</h1>
-      <p class="text-slate-400 text-sm mt-0.5" x-text="sessions.length+' séance(s) enregistrée(s)'"></p>
+      <div class="text-2xl font-bold" style="color:var(--text)">Historique</div>
+      <div class="text-sm mt-0.5" style="color:var(--muted)" x-text="sessions.length + ' séance' + (sessions.length !== 1 ? 's' : '')"></div>
     </div>
-    <div class="flex bg-slate-800 rounded-xl p-1 border border-slate-700/50">
-      <button @click="historiqueView='liste'" :class="historiqueView==='liste'?'bg-blue-600 text-white':'text-slate-400 hover:text-slate-200'" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all">Liste</button>
-      <button @click="historiqueView='calendrier'" :class="historiqueView==='calendrier'?'bg-blue-600 text-white':'text-slate-400 hover:text-slate-200'" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all">Calendrier</button>
+    <div class="flex p-1 rounded-xl" style="background:var(--s2)">
+      <button @click="historiqueView='liste'" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
+        :style="historiqueView==='liste' ? 'background:var(--accent);color:var(--accent-ink)' : 'color:var(--muted)'">Liste</button>
+      <button @click="historiqueView='calendrier'" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
+        :style="historiqueView==='calendrier' ? 'background:var(--accent);color:var(--accent-ink)' : 'color:var(--muted)'">Calendrier</button>
     </div>
   </div>
 
   <!-- ── Vue Liste ── -->
   <div x-show="historiqueView==='liste'">
+
+    <!-- Heatmap 4 semaines -->
+    <div class="px-4 mb-5">
+      <div class="font-semibold tracking-[0.12em] uppercase mb-2.5" style="font-size:10px;color:var(--muted)">4 dernières semaines</div>
+      <div class="grid gap-1" style="grid-template-columns:repeat(28,1fr)">
+        <template x-for="(cell, i) in heatmapDays()" :key="i">
+          <div class="rounded-sm" style="aspect-ratio:1"
+            :style="cell.count > 0 ? `background:oklch(0.88 0.20 130 / ${Math.min(0.9, 0.25 + cell.count * 0.35)})` : 'background:var(--s2)'"></div>
+        </template>
+      </div>
+      <div class="flex justify-between mt-1.5">
+        <span style="font-size:9px;color:var(--dim)">−4 sem.</span>
+        <span style="font-size:9px;color:var(--dim)">auj.</span>
+      </div>
+    </div>
+
     <template x-if="sessions.length===0">
-      <div class="text-center py-20 text-slate-600"><div class="text-5xl mb-3">📅</div><p class="font-medium">Aucune séance pour l'instant</p></div>
+      <div class="text-center py-16" style="color:var(--dim)"><div class="text-5xl mb-3">📅</div><p class="font-medium" style="color:var(--muted)">Aucune séance pour l'instant</p></div>
     </template>
     <div class="px-4">
       <template x-for="s in sessions" :key="s.id">
-        <div class="bg-slate-800 rounded-2xl mb-3 overflow-hidden border border-slate-700/50 cursor-pointer" @click="expandedSession=expandedSession===s.id?null:s.id">
-          <div class="p-4 flex justify-between items-center">
-            <div class="flex-1">
-              <div class="font-semibold text-white capitalize" x-text="formatDate(s.date)"></div>
-              <div class="text-xs text-slate-400 mt-1 flex items-center gap-2 flex-wrap">
-                <template x-if="s.programmeName"><span class="text-blue-400 font-medium" x-text="'📋 '+s.programmeName"></span></template>
-                <span x-text="s.exercises.length+' exercices'"></span><span class="text-slate-600">·</span>
-                <span x-text="formatDuration(s.duration)"></span><span class="text-slate-600">·</span>
-                <span x-text="totalVolume(s)+' kg'"></span>
-              </div>
+        <div class="rounded-2xl mb-3 overflow-hidden cursor-pointer" style="background:var(--s1);border:1px solid var(--border)" @click="expandedSession=expandedSession===s.id?null:s.id">
+          <div class="p-4 flex items-center gap-3">
+            <!-- Date badge -->
+            <div class="w-11 flex-shrink-0 rounded-xl py-1.5 text-center" style="background:var(--s2)">
+              <div class="font-bold tracking-wider uppercase" style="font-size:9px;color:var(--muted)" x-text="new Date(s.date).toLocaleDateString('fr-FR',{weekday:'short'}).replace('.','').slice(0,3).toUpperCase()"></div>
+              <div class="text-lg font-bold leading-tight" style="font-family:var(--mono);color:var(--text)" x-text="new Date(s.date).getDate()"></div>
             </div>
-            <div class="flex items-center gap-1.5 ml-2">
-              <span class="text-xs text-slate-500 mr-1" x-text="formatTime(s.date)"></span>
-              <button @click.stop="startEditSession(s)" class="p-1.5 rounded-lg text-slate-600 hover:text-blue-400 hover:bg-blue-400/10 transition-colors">
+            <!-- Info -->
+            <div class="flex-1 min-w-0">
+              <div class="font-semibold text-sm truncate" style="color:var(--text)" x-text="s.programmeName || 'Séance libre'"></div>
+              <div class="text-xs mt-0.5" style="color:var(--muted)" x-text="formatDuration(s.duration) + ' · ' + totalVolume(s) + ' kg · ' + s.exercises.length + ' ex.'"></div>
+            </div>
+            <!-- Actions -->
+            <div class="flex items-center gap-0.5">
+              <button @click.stop="startEditSession(s)" class="p-1.5 rounded-lg transition-colors" style="color:var(--dim)" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--dim)'">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
               </button>
-              <button @click.stop="confirmDeleteId=s.id" class="p-1.5 rounded-lg text-slate-600 hover:text-red-400 hover:bg-red-400/10 transition-colors">
+              <button @click.stop="confirmDeleteId=s.id" class="p-1.5 rounded-lg transition-colors" style="color:var(--dim)" onmouseover="this.style.color='#e05a4a'" onmouseout="this.style.color='var(--dim)'">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
               </button>
-              <svg class="w-4 h-4 text-slate-600 transition-transform flex-shrink-0" :class="expandedSession===s.id?'rotate-180':''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+              <svg class="w-4 h-4 transition-transform flex-shrink-0" style="color:var(--dim)" :class="expandedSession===s.id?'rotate-180':''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
             </div>
           </div>
-          <div x-show="expandedSession===s.id" class="border-t border-slate-700 px-4 pt-3 pb-4">
+          <div x-show="expandedSession===s.id" style="border-top:1px solid var(--border)" class="px-4 pt-3 pb-4">
             <template x-for="ex in s.exercises" :key="ex.id">
               <div class="mb-3">
                 <div class="text-xs font-semibold mb-1.5" :style="`color:${groupColor(ex.group)}`" x-text="ex.name"></div>
                 <div class="flex flex-wrap gap-1.5">
                   <template x-for="(set,i) in ex.sets" :key="i">
-                    <span class="text-xs px-2.5 py-1 rounded-full font-medium" :class="set.done?'bg-emerald-900/60 text-emerald-300':'bg-slate-700 text-slate-400 line-through'" x-text="`${set.weight} kg × ${set.reps}`"></span>
+                    <span class="text-xs px-2.5 py-1 rounded-full font-medium"
+                      :style="set.done ? 'background:oklch(0.88 0.20 130 / 0.12);color:oklch(0.82 0.16 130)' : 'background:var(--s2);color:var(--dim);text-decoration:line-through'"
+                      x-text="`${set.weight} kg × ${set.reps}`"></span>
                   </template>
                 </div>
               </div>
@@ -843,9 +868,9 @@
   </template>
   <div class="px-4" x-show="selectedExerciseId">
     <div class="grid grid-cols-3 gap-3 mb-5" x-show="progressStats.sessions>0">
-      <div class="bg-slate-800 rounded-2xl p-4 text-center"><div class="text-xl font-bold text-blue-400" style="font-family:'Playfair Display',serif" x-text="progressStats.maxWeight+' kg'"></div><div class="text-xs text-slate-400 mt-1" style="letter-spacing:.06em;text-transform:uppercase;font-size:10px">Record</div></div>
-      <div class="bg-slate-800 rounded-2xl p-4 text-center"><div class="text-xl font-bold text-blue-400" style="font-family:'Playfair Display',serif" x-text="progressStats.sessions"></div><div class="text-xs text-slate-400 mt-1" style="letter-spacing:.06em;text-transform:uppercase;font-size:10px">Séances</div></div>
-      <div class="bg-slate-800 rounded-2xl p-4 text-center"><div class="text-2xl" x-text="progressStats.trend"></div><div class="text-xs text-slate-400 mt-1" style="letter-spacing:.06em;text-transform:uppercase;font-size:10px">Tendance</div></div>
+      <div class="rounded-2xl p-4 text-center" style="background:var(--s1);border:1px solid var(--border)"><div class="text-xl font-bold" style="font-family:var(--mono);color:var(--accent)" x-text="progressStats.maxWeight+' kg'"></div><div class="font-semibold tracking-[0.1em] uppercase mt-1" style="font-size:9px;color:var(--muted)">Record</div></div>
+      <div class="rounded-2xl p-4 text-center" style="background:var(--s1);border:1px solid var(--border)"><div class="text-xl font-bold" style="font-family:var(--mono);color:var(--accent)" x-text="progressStats.sessions"></div><div class="font-semibold tracking-[0.1em] uppercase mt-1" style="font-size:9px;color:var(--muted)">Séances</div></div>
+      <div class="rounded-2xl p-4 text-center" style="background:var(--s1);border:1px solid var(--border)"><div class="text-2xl" x-text="progressStats.trend"></div><div class="font-semibold tracking-[0.1em] uppercase mt-1" style="font-size:9px;color:var(--muted)">Tendance</div></div>
     </div>
     <div class="bg-slate-800 rounded-2xl p-4 mb-4" x-show="progressStats.sessions>0"><div class="text-sm font-semibold text-slate-300 mb-4">Charge maximale par séance (kg)</div><canvas id="progressChart"></canvas></div>
     <div class="bg-slate-800 rounded-2xl p-4" x-show="progressStats.sessions>0"><div class="text-sm font-semibold text-slate-300 mb-4">Volume total par séance (kg × reps)</div><canvas id="volumeChart"></canvas></div>
@@ -1324,6 +1349,11 @@ function gymApp() {
       for(let i=6;i>=0;i--){const t=new Date(d);t.setDate(d.getDate()-i);result.push(days.has(t.toDateString()));}
       return result;
     },
+    heatmapDays(){
+      const result=[]; const d=new Date(); d.setHours(0,0,0,0);
+      for(let i=27;i>=0;i--){const t=new Date(d);t.setDate(d.getDate()-i);const key=t.toDateString();result.push({date:t,count:this.sessions.filter(s=>new Date(s.date).toDateString()===key).length});}
+      return result;
+    },
     get weekVolume(){
       const cutoff=Date.now()-7*864e5; let v=0;
       this.sessions.filter(s=>new Date(s.date).getTime()>cutoff).forEach(s=>s.exercises.forEach(ex=>ex.sets.forEach(set=>{if(set.done)v+=set.weight*set.reps;})));
@@ -1334,6 +1364,12 @@ function gymApp() {
       const total=this.sessions.filter(s=>new Date(s.date).getTime()>cutoff).reduce((sum,s)=>sum+(s.duration||0),0);
       if(!total)return'0'; const h=Math.floor(total/3600),m=Math.floor((total%3600)/60);
       return h>0?`${h}h${m>0?String(m).padStart(2,'0'):''}`:m+'m';
+    },
+    get sessionProgress(){
+      if(!this.session)return 0;
+      let done=0,total=0;
+      this.session.exercises.forEach(ex=>ex.sets.forEach(s=>{total++;if(s.done)done++;}));
+      return total?done/total:0;
     },
     totalVolume(s){let v=0;s.exercises.forEach(ex=>ex.sets.forEach(s=>{if(s.done)v+=s.weight*s.reps;}));return v.toLocaleString('fr-FR');},
     showToast(msg,error=false){this.toast={show:true,msg,error};setTimeout(()=>{this.toast.show=false;},2500);},
