@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <meta name="theme-color" content="#0d0d0d">
+  <meta name="theme-color" content="#ffffff">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -22,7 +22,7 @@
     [x-cloak]{display:none!important}
     *{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
     html,body{height:100%;margin:0}
-    body{background:#1b1916;color:#f7f5f0;font-family:'Space Grotesk',system-ui,-apple-system,sans-serif;overscroll-behavior:none}
+    body{background:#ffffff;color:#1c1611;font-family:'Space Grotesk',system-ui,-apple-system,sans-serif;overscroll-behavior:none}
     input[type="number"]{-moz-appearance:textfield}
     input[type="number"]::-webkit-outer-spin-button,
     input[type="number"]::-webkit-inner-spin-button{-webkit-appearance:none}
@@ -32,36 +32,36 @@
     .spin{animation:spin .8s linear infinite}
     @keyframes fadeSlideIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
     .animate-in{animation:fadeSlideIn 0.25s ease forwards}
-    select option{background:#1a1a1a}
+    select option{background:#ffffff}
 
     /* ── Design tokens ─────────────────────────────────── */
     :root{
       --accent:#C9A84C;--accent-ink:#0d0d0d;
-      --bg:#1b1916;--s1:#28231e;--s1h:#332d26;--s2:#332d26;--s3:#3d352b;
-      --text:#f7f5f0;--muted:#8a7f73;--dim:#5a5048;
-      --border:#3d352b;
+      --bg:#ffffff;--s1:#f5f3ef;--s1h:#eceae4;--s2:#ece9e3;--s3:#e4e0d8;
+      --text:#1c1611;--muted:#7a7060;--dim:#b0a898;
+      --border:#e4e0d8;
       --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,monospace;
     }
 
     /* ── Background overrides ──────────────────────────── */
     [class~="bg-slate-950"],[class~="bg-slate-900"][class~="fixed"][class~="inset-0"]{background-color:var(--bg)!important}
-    [class~="bg-slate-900"]{background-color:#1e1914!important}
-    [class~="bg-slate-900\/95"]{background-color:rgba(28,24,19,0.97)!important}
-    [class~="bg-slate-900\/80"]{background-color:rgba(27,25,22,0.88)!important}
+    [class~="bg-slate-900"]{background-color:#f5f3ef!important}
+    [class~="bg-slate-900\/95"]{background-color:rgba(245,243,239,0.97)!important}
+    [class~="bg-slate-900\/80"]{background-color:rgba(255,255,255,0.88)!important}
     [class~="bg-slate-800"]{background-color:var(--s1)!important}
-    [class~="bg-slate-800\/50"]{background-color:rgba(40,35,30,0.5)!important}
+    [class~="bg-slate-800\/50"]{background-color:rgba(245,243,239,0.6)!important}
     [class~="bg-slate-700"]{background-color:var(--s2)!important}
-    [class~="bg-slate-700\/50"]{background-color:rgba(51,45,38,0.5)!important}
+    [class~="bg-slate-700\/50"]{background-color:rgba(236,233,227,0.6)!important}
     [class~="bg-slate-600"]{background-color:var(--s3)!important}
 
     /* ── Blue → Accent or ──────────────────────────────── */
     [class~="bg-blue-600"]{background-color:var(--accent)!important;color:var(--accent-ink)!important}
     [class~="bg-blue-600\/20"]{background-color:rgba(201,168,76,0.12)!important}
     [class~="bg-blue-400\/10"]{background-color:rgba(201,168,76,0.08)!important}
-    [class~="text-blue-400"]{color:var(--accent)!important}
-    [class~="text-blue-300"]{color:#E8C56A!important}
+    [class~="text-blue-400"]{color:#a07c28!important}
+    [class~="text-blue-300"]{color:#b89035!important}
     [class~="border-blue-500"]{border-color:var(--accent)!important}
-    [class~="shadow-blue-900\/40"]{--tw-shadow-color:rgba(201,168,76,0.15)!important}
+    [class~="shadow-blue-900\/40"]{--tw-shadow-color:rgba(201,168,76,0.2)!important}
     [class~="hover:border-blue-500\/50"]:hover{border-color:rgba(201,168,76,0.4)!important}
     [class~="focus:border-blue-500"]:focus{border-color:var(--accent)!important}
     [class~="ring-blue-500"]{--tw-ring-color:var(--accent)!important}
@@ -69,50 +69,50 @@
     /* ── Emerald → vert succès ─────────────────────────── */
     [class~="bg-emerald-600"]{background-color:#27ae60!important}
     [class~="bg-emerald-500"]{background-color:#2ecc71!important}
-    [class~="bg-emerald-950\/40"]{background-color:rgba(39,174,96,0.12)!important}
-    [class~="bg-emerald-900\/50"]{background-color:rgba(39,174,96,0.15)!important}
-    [class~="bg-emerald-900\/70"]{background-color:rgba(39,174,96,0.25)!important}
-    [class~="text-emerald-400"]{color:#2ecc71!important}
-    [class~="text-emerald-300"]{color:#58d68d!important}
+    [class~="bg-emerald-950\/40"]{background-color:rgba(39,174,96,0.1)!important}
+    [class~="bg-emerald-900\/50"]{background-color:rgba(39,174,96,0.12)!important}
+    [class~="bg-emerald-900\/70"]{background-color:rgba(39,174,96,0.18)!important}
+    [class~="text-emerald-400"]{color:#1e8449!important}
+    [class~="text-emerald-300"]{color:#239b56!important}
     [class~="ring-emerald-500\/40"]{--tw-ring-color:rgba(46,204,113,0.3)!important}
 
     /* ── Violet / Orange ───────────────────────────────── */
-    [class~="text-violet-400"]{color:#9b8fc0!important}
-    [class~="bg-violet-600\/20"]{background-color:rgba(155,143,192,0.12)!important}
-    [class~="ring-violet-500"]{--tw-ring-color:#9b8fc0!important}
-    [class~="text-orange-400"]{color:#c9854c!important}
+    [class~="text-violet-400"]{color:#7d6fad!important}
+    [class~="bg-violet-600\/20"]{background-color:rgba(125,111,173,0.1)!important}
+    [class~="ring-violet-500"]{--tw-ring-color:#7d6fad!important}
+    [class~="text-orange-400"]{color:#c0662a!important}
 
     /* ── Text ──────────────────────────────────────────── */
     [class~="text-white"]{color:var(--text)!important}
     [class~="text-slate-400"]{color:var(--muted)!important}
-    [class~="text-slate-300"]{color:#c0b8af!important}
+    [class~="text-slate-300"]{color:#5a5248!important}
     [class~="text-slate-500"]{color:var(--dim)!important}
-    [class~="text-slate-600"]{color:#453e38!important}
-    [class~="text-slate-200"]{color:#d8d0c4!important}
+    [class~="text-slate-600"]{color:#c8c0b4!important}
+    [class~="text-slate-200"]{color:#3a3228!important}
 
     /* ── Borders ───────────────────────────────────────── */
     [class~="border-slate-700"]{border-color:var(--border)!important}
-    [class~="border-slate-700\/50"]{border-color:rgba(61,53,43,0.6)!important}
-    [class~="border-slate-600"]{border-color:#4a4038!important}
+    [class~="border-slate-700\/50"]{border-color:rgba(228,224,216,0.8)!important}
+    [class~="border-slate-600"]{border-color:#d8d4cc!important}
 
     /* ── Red ───────────────────────────────────────────── */
     [class~="bg-red-600"]{background-color:#c0392b!important}
-    [class~="text-red-400"]{color:#e05a4a!important}
-    [class~="bg-red-400\/10"]{background-color:rgba(192,57,43,0.1)!important}
+    [class~="text-red-400"]{color:#c0392b!important}
+    [class~="bg-red-400\/10"]{background-color:rgba(192,57,43,0.08)!important}
 
     /* ── Hovers ────────────────────────────────────────── */
     [class~="hover:bg-blue-500"]:hover{background-color:#E8C56A!important;color:var(--accent-ink)!important}
     [class~="hover:bg-emerald-500"]:hover{background-color:#2ecc71!important}
-    [class~="hover:bg-red-500"]:hover{background-color:#d44231!important}
+    [class~="hover:bg-red-500"]:hover{background-color:#c0392b!important}
     [class~="hover:bg-slate-700"]:hover{background-color:var(--s1h)!important}
     [class~="hover:bg-slate-600"]:hover{background-color:var(--s3)!important}
     [class~="hover:text-white"]:hover{color:var(--text)!important}
-    [class~="hover:text-blue-400"]:hover{color:var(--accent)!important}
-    [class~="hover:text-blue-300"]:hover{color:#E8C56A!important}
-    [class~="hover:text-red-400"]:hover{color:#e05a4a!important}
-    [class~="hover:bg-red-400\/10"]:hover{background-color:rgba(192,57,43,0.1)!important}
+    [class~="hover:text-blue-400"]:hover{color:#a07c28!important}
+    [class~="hover:text-blue-300"]:hover{color:#b89035!important}
+    [class~="hover:text-red-400"]:hover{color:#c0392b!important}
+    [class~="hover:bg-red-400\/10"]:hover{background-color:rgba(192,57,43,0.08)!important}
     [class~="hover:bg-blue-400\/10"]:hover{background-color:rgba(201,168,76,0.08)!important}
-    [class~="hover:border-slate-600"]:hover{border-color:#4a4038!important}
+    [class~="hover:border-slate-600"]:hover{border-color:#d8d4cc!important}
 
     /* ── Nav ───────────────────────────────────────────── */
     nav.fixed{background-color:var(--bg)!important;border-top-color:var(--border)!important}
@@ -122,7 +122,7 @@
 
     /* ── Inputs ────────────────────────────────────────── */
     input[type="text"],input[type="number"],input[type="url"],select{
-      background-color:#221e1a!important;border-color:var(--border)!important;color:var(--text)!important
+      background-color:#ffffff!important;border-color:var(--border)!important;color:var(--text)!important
     }
     input[type="text"]:focus,input[type="url"]:focus,select:focus{border-color:var(--accent)!important}
     input::placeholder{color:var(--dim)!important}
@@ -130,8 +130,8 @@
     /* ── Calendar classes ──────────────────────────────── */
     .cal-sel-session{background-color:var(--accent)!important;color:var(--accent-ink)!important}
     .cal-sel{background-color:var(--s3)!important;color:var(--text)!important}
-    .cal-has{background-color:rgba(201,168,76,0.15)!important;color:var(--accent)!important;box-shadow:inset 0 0 0 1px rgba(201,168,76,0.35)}
-    .cal-today{color:var(--accent)!important;box-shadow:inset 0 0 0 1px rgba(201,168,76,0.55)}
+    .cal-has{background-color:rgba(201,168,76,0.15)!important;color:#a07c28!important;box-shadow:inset 0 0 0 1px rgba(201,168,76,0.4)}
+    .cal-today{color:#a07c28!important;box-shadow:inset 0 0 0 1px rgba(201,168,76,0.6)}
     .cal-empty{color:var(--dim)}
     .cal-empty:hover,.cal-today:hover{background-color:var(--s1)!important}
     .cal-has:hover{background-color:rgba(201,168,76,0.22)!important}
@@ -317,7 +317,7 @@
   <!-- ── Séance en cours ── -->
   <template x-if="session">
     <div>
-  <div class="sticky top-0 z-10 backdrop-blur px-4 py-3 flex items-center justify-between" style="background:rgba(27,25,22,0.95);border-bottom:1px solid var(--border)">
+  <div class="sticky top-0 z-10 backdrop-blur px-4 py-3 flex items-center justify-between" style="background:rgba(255,255,255,0.95);border-bottom:1px solid var(--border)">
     <div>
       <div class="text-xs mb-0.5" style="color:var(--muted)" x-text="session?.programmeName?'📋 '+session.programmeName:'Séance libre'"></div>
       <div class="text-2xl font-bold" style="font-family:var(--mono);color:var(--accent)" x-text="formatDuration(sessionSeconds)"></div>
@@ -703,7 +703,7 @@
               :value="editSessionDateStr()"
               @change="setEditSessionDate($event.target.value)"
               class="w-full bg-slate-700 border border-slate-600 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-blue-500 transition-colors"
-              style="color-scheme:dark">
+              style="color-scheme:light">
           </div>
           <div class="w-32">
             <label class="block text-xs text-slate-500 mb-1.5">Heure</label>
@@ -711,7 +711,7 @@
               :value="editSessionTimeStr()"
               @change="setEditSessionTime($event.target.value)"
               class="w-full bg-slate-700 border border-slate-600 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-blue-500 transition-colors"
-              style="color-scheme:dark">
+              style="color-scheme:light">
           </div>
         </div>
       </div>
@@ -1534,11 +1534,11 @@ function gymApp() {
       if(wD.length>0){const first=wD[0].y,last=wD[wD.length-1].y;this.progressStats={sessions:wD.length,maxWeight:Math.max(...wD.map(d=>d.y)),trend:wD.length<2?'—':last>first?'📈':last<first?'📉':'➡️'};}
       else{this.progressStats={sessions:0,maxWeight:0,trend:'—'};return;}
       const accent=getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()||'#C9A84C';
-      const scales={x:{ticks:{color:'#8a7f73',font:{size:11,family:"'Space Grotesk',sans-serif"}},grid:{color:'rgba(255,255,255,0.04)'}},y:{ticks:{color:'#8a7f73',font:{size:11,family:"'Space Grotesk',sans-serif"}},grid:{color:'rgba(255,255,255,0.04)'}}};
+      const scales={x:{ticks:{color:'#8a7f73',font:{size:11,family:"'Space Grotesk',sans-serif"}},grid:{color:'rgba(0,0,0,0.06)'}},y:{ticks:{color:'#8a7f73',font:{size:11,family:"'Space Grotesk',sans-serif"}},grid:{color:'rgba(0,0,0,0.06)'}}};
       this.$nextTick(()=>{
         if(this._progressChart)this._progressChart.destroy();
         const c1=document.getElementById('progressChart');
-        if(c1)this._progressChart=new Chart(c1,{type:'line',data:{labels:wD.map(d=>d.x),datasets:[{data:wD.map(d=>d.y),borderColor:accent,backgroundColor:'rgba(201,168,76,0.08)',borderWidth:2.5,pointBackgroundColor:accent,pointBorderColor:'#1b1916',pointBorderWidth:2,pointRadius:5,fill:true,tension:0.35}]},options:{responsive:true,plugins:{legend:{display:false}},scales}});
+        if(c1)this._progressChart=new Chart(c1,{type:'line',data:{labels:wD.map(d=>d.x),datasets:[{data:wD.map(d=>d.y),borderColor:accent,backgroundColor:'rgba(201,168,76,0.08)',borderWidth:2.5,pointBackgroundColor:accent,pointBorderColor:'#ffffff',pointBorderWidth:2,pointRadius:5,fill:true,tension:0.35}]},options:{responsive:true,plugins:{legend:{display:false}},scales}});
         if(this._volumeChart)this._volumeChart.destroy();
         const c2=document.getElementById('volumeChart');
         if(c2)this._volumeChart=new Chart(c2,{type:'bar',data:{labels:vD.map(d=>d.x),datasets:[{data:vD.map(d=>d.y),backgroundColor:'rgba(201,168,76,0.65)',borderColor:accent,borderWidth:1.5,borderRadius:6}]},options:{responsive:true,plugins:{legend:{display:false}},scales}});
