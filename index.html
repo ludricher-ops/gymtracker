@@ -626,6 +626,28 @@
     </div>
 
     <div class="px-4 pt-4" x-show="editingSession">
+      <!-- Date & heure -->
+      <div class="bg-slate-800 rounded-2xl p-4 mb-4 border border-slate-700/50">
+        <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3" style="letter-spacing:.06em">Date & heure</div>
+        <div class="flex gap-3">
+          <div class="flex-1">
+            <label class="block text-xs text-slate-500 mb-1.5">Date</label>
+            <input type="date"
+              :value="editSessionDateStr()"
+              @change="setEditSessionDate($event.target.value)"
+              class="w-full bg-slate-700 border border-slate-600 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-blue-500 transition-colors"
+              style="color-scheme:dark">
+          </div>
+          <div class="w-32">
+            <label class="block text-xs text-slate-500 mb-1.5">Heure</label>
+            <input type="time"
+              :value="editSessionTimeStr()"
+              @change="setEditSessionTime($event.target.value)"
+              class="w-full bg-slate-700 border border-slate-600 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-blue-500 transition-colors"
+              style="color-scheme:dark">
+          </div>
+        </div>
+      </div>
       <template x-for="(exercise, exIdx) in editingSession.exercises" :key="exercise.id+exIdx">
         <div class="bg-slate-800 rounded-2xl mb-4 overflow-hidden border border-slate-700/50">
           <!-- Image -->
@@ -1400,6 +1422,10 @@ function gymApp() {
     formatDuration(secs){if(!secs&&secs!==0)return'—';const h=Math.floor(secs/3600),m=Math.floor((secs%3600)/60),s=secs%60;return h>0?`${h}h${String(m).padStart(2,'0')}`:`${m}:${String(s).padStart(2,'0')}`;},
     formatDate(iso){return new Date(iso).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});},
     formatTime(iso){return new Date(iso).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});},
+    editSessionDateStr(){if(!this.editingSession)return'';const d=new Date(this.editingSession.date);return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;},
+    editSessionTimeStr(){if(!this.editingSession)return'';const d=new Date(this.editingSession.date);return`${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;},
+    setEditSessionDate(dateStr){if(!this.editingSession||!dateStr)return;const d=new Date(this.editingSession.date);const[y,m,day]=dateStr.split('-').map(Number);d.setFullYear(y,m-1,day);this.editingSession.date=d.toISOString();},
+    setEditSessionTime(timeStr){if(!this.editingSession||!timeStr)return;const d=new Date(this.editingSession.date);const[h,min]=timeStr.split(':').map(Number);d.setHours(h,min,0,0);this.editingSession.date=d.toISOString();},
 
     // ── Charts ────────────────────────────────────────────
     renderProgressChart(){
