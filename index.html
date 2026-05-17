@@ -322,11 +322,11 @@
     <button @click="confirmFinish=true" class="w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-full active:scale-90 transition-all" style="background:var(--s1);color:var(--muted)">
       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
     </button>
-    <!-- Centre : EN COURS + chrono -->
-    <div class="flex-1 text-center">
+    <!-- Centre : EN COURS + chrono (tap → overview) -->
+    <button @click="showSessionOverview=true" class="flex-1 text-center py-1 rounded-2xl active:scale-95 transition-all" style="background:transparent">
       <div class="text-xs font-bold tracking-widest" style="color:var(--muted);letter-spacing:2px">EN COURS</div>
       <div class="text-xl font-bold leading-tight" style="font-family:var(--mono);color:var(--text)" x-text="formatDuration(sessionSeconds)"></div>
-    </div>
+    </button>
     <!-- Done/Total pill -->
     <div class="flex-shrink-0 px-3 py-1.5 rounded-full font-bold text-sm" style="background:var(--accent);color:#fff;font-family:var(--mono)">
       <span x-text="doneSetsCount"></span><span style="opacity:0.65">/</span><span x-text="totalSetsCount"></span>
@@ -380,7 +380,7 @@
                 <button @click="set.reps++" class="px-2 py-2 text-base font-bold leading-none select-none active:scale-90 transition-all" style="color:var(--muted)">+</button>
               </div></div>
               <div class="col-span-2 flex justify-center">
-                <button @click="if(!set.done){set.done=true;startRestTimer();}else{set.done=false;}" class="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold transition-all active:scale-90" :style="set.done?'background:var(--accent);color:#fff':'background:var(--s2);color:var(--dim);border:1px solid var(--border)'">✓</button>
+                <button @click="validateSet(exercise, set)" class="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold transition-all active:scale-90" :style="set.done?'background:var(--accent);color:#fff':'background:var(--s2);color:var(--dim);border:1px solid var(--border)'">✓</button>
               </div>
             </div>
           </template>
@@ -458,9 +458,9 @@
           <div>
           <template x-for="prog in catGroup.programmes" :key="prog.id">
             <div class="bg-slate-800 rounded-2xl mb-3 border border-slate-700/50 overflow-hidden">
-              <!-- En-tête cliquable -->
+              <!-- En-tête cliquable → ouvre le détail -->
               <div class="p-4 flex items-center justify-between cursor-pointer select-none"
-                   @click="expandedProgrammes={...expandedProgrammes,[prog.id]:!expandedProgrammes[prog.id]}">
+                   @click="programmeDetail=prog">
                 <div class="flex-1 min-w-0">
                   <div class="font-bold text-white text-base" x-text="prog.name"></div>
                   <div class="text-xs text-slate-400 mt-1" x-text="prog.weekSessions ? Object.values(prog.weekSessions).filter(Boolean).length+' séances/sem' : (prog.exercises||[]).length+' exercice(s)'"></div>
@@ -484,42 +484,10 @@
                   <button @click.stop="confirmDeleteProgrammeId=prog.id" class="p-2 rounded-xl text-slate-400 hover:text-red-400 hover:bg-red-400/10 transition-colors">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                   </button>
-                  <svg class="w-4 h-4 text-slate-500 transition-transform ml-1 flex-shrink-0"
-                       :class="expandedProgrammes[prog.id]?'rotate-180':''"
-                       fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                  <svg class="w-4 h-4 text-slate-500 ml-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                   </svg>
                 </div>
-              </div>
-              <!-- Détail dépliable -->
-              <div x-show="expandedProgrammes[prog.id]" class="border-t border-slate-700 px-4 py-3">
-                <!-- Wizard programme : affichage par jour -->
-                <template x-if="prog.weekSessions">
-                  <div>
-                    <template x-for="ds in progDaySessions(prog)" :key="ds.key">
-                      <div class="mb-3">
-                        <div class="text-xs font-bold mb-1.5 flex items-center gap-2" :style="`color:${prog.color||'var(--accent)'}`">
-                          <span x-text="ds.label"></span><span style="color:#aaa">·</span><span x-text="ds.session.name"></span>
-                        </div>
-                        <template x-for="ex in ds.session.exercises" :key="ex.id">
-                          <div class="flex items-center justify-between py-1 text-xs pl-2">
-                            <span class="text-slate-300" x-text="ex.name"></span>
-                            <span class="text-slate-500" x-text="ex.sets+'×'+ex.reps+' — '+ex.weight+'kg'"></span>
-                          </div>
-                        </template>
-                      </div>
-                    </template>
-                  </div>
-                </template>
-                <!-- Programme classique : liste plate -->
-                <template x-if="!prog.weekSessions">
-                  <template x-for="ex in (prog.exercises||[])" :key="ex.id">
-                    <div class="flex items-center justify-between py-1.5 text-sm">
-                      <span class="text-slate-300" x-text="ex.name"></span>
-                      <span class="text-slate-500 text-xs" x-text="ex.sets+' × '+ex.reps+' reps — '+ex.weight+' kg'"></span>
-                    </div>
-                  </template>
-                </template>
               </div>
             </div>
           </template>
@@ -1471,6 +1439,352 @@
   </div>
 </div>
 
+<!-- ══ OVERLAY : PR CELEBRATION ════════════════════════════ -->
+<div x-show="prCelebration" x-cloak @click.self="dismissPR()"
+  class="fixed inset-0 z-[60] flex items-end justify-center pb-8 px-4"
+  style="background:rgba(0,0,0,0.65);backdrop-filter:blur(8px)">
+  <template x-if="prCelebration">
+    <div class="w-full max-w-sm rounded-3xl overflow-hidden animate-in" style="background:#fff;box-shadow:0 32px 80px rgba(0,0,0,0.25)">
+      <!-- Hero accent bar -->
+      <div class="h-1.5 w-full" style="background:var(--accent)"></div>
+      <div class="px-6 pt-6 pb-7">
+        <!-- Trophée + label -->
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0" style="background:oklch(0.74 0.19 48 / 0.12)">🏆</div>
+          <div>
+            <div class="text-xs font-bold tracking-widest uppercase mb-0.5" style="color:var(--accent)">Nouveau Record Perso</div>
+            <div class="font-bold text-base leading-tight" style="color:var(--text)" x-text="prCelebration?.exerciseName"></div>
+          </div>
+        </div>
+        <!-- Perf actuelle -->
+        <div class="text-center py-4 mb-4 rounded-2xl" style="background:var(--s1)">
+          <div class="text-4xl font-bold leading-none mb-1" style="font-family:var(--mono);color:var(--accent)" x-text="prCelebration?.weightKg + ' kg × ' + prCelebration?.reps"></div>
+          <div class="text-xs" style="color:var(--muted)">1RM estimé : <span style="font-family:var(--mono);color:var(--text)" x-text="prCelebration?.newMax + ' kg'"></span></div>
+        </div>
+        <!-- Ancien vs nouveau 1RM -->
+        <div class="grid grid-cols-3 gap-2 mb-5 text-center">
+          <div class="rounded-xl py-2.5" style="background:var(--s2)">
+            <div class="text-xs mb-0.5" style="color:var(--muted)">Avant</div>
+            <div class="font-bold text-sm" style="font-family:var(--mono);color:var(--text)" x-text="prCelebration?.oldMax ? prCelebration.oldMax + ' kg' : '—'"></div>
+          </div>
+          <div class="rounded-xl py-2.5 flex flex-col items-center justify-center" style="background:oklch(0.74 0.19 48 / 0.1)">
+            <div class="text-xs font-bold" style="color:var(--accent)" x-text="'+' + prCelebration?.delta + ' kg'"></div>
+            <div class="text-lg leading-none">↑</div>
+          </div>
+          <div class="rounded-xl py-2.5" style="background:oklch(0.74 0.19 48 / 0.1)">
+            <div class="text-xs mb-0.5" style="color:var(--muted)">Maintenant</div>
+            <div class="font-bold text-sm" style="font-family:var(--mono);color:var(--accent)" x-text="prCelebration?.newMax + ' kg'"></div>
+          </div>
+        </div>
+        <button @click="dismissPR()" class="w-full py-3.5 rounded-2xl font-bold text-sm active:scale-95 transition-all" style="background:var(--accent);color:#fff">Continuer la séance →</button>
+      </div>
+    </div>
+  </template>
+</div>
+
+<!-- ══ OVERLAY : SESSION OVERVIEW SHEET ════════════════════ -->
+<div x-show="showSessionOverview && session" x-cloak @click.self="showSessionOverview=false"
+  class="fixed inset-0 z-50 flex items-end"
+  style="background:rgba(0,0,0,0.5);backdrop-filter:blur(6px)">
+  <div class="w-full rounded-t-3xl overflow-hidden animate-in" style="background:#fff;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 -8px 40px rgba(0,0,0,0.15)">
+    <!-- Drag handle -->
+    <div class="flex justify-center pt-3 pb-2 flex-shrink-0">
+      <div class="w-10 h-1 rounded-full" style="background:var(--s3)"></div>
+    </div>
+    <!-- Header -->
+    <div class="flex items-center justify-between px-5 pb-3 flex-shrink-0">
+      <div>
+        <div class="font-bold text-base" style="color:var(--text)" x-text="session?.programmeName || 'Séance libre'"></div>
+        <div class="text-xs mt-0.5" style="color:var(--muted)" x-text="formatDuration(sessionSeconds) + ' · ' + doneSetsCount + '/' + totalSetsCount + ' séries'"></div>
+      </div>
+      <button @click="showSessionOverview=false" class="w-8 h-8 rounded-full flex items-center justify-center" style="background:var(--s2);color:var(--muted)">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <!-- Progress bar global -->
+    <div class="px-5 mb-3 flex-shrink-0">
+      <div class="h-1.5 rounded-full overflow-hidden" style="background:var(--s2)">
+        <div class="h-full rounded-full transition-all" style="background:var(--accent)" :style="`width:${totalSetsCount>0?Math.round(doneSetsCount/totalSetsCount*100):0}%`"></div>
+      </div>
+    </div>
+    <!-- Liste exercices -->
+    <div class="overflow-y-auto flex-1 px-5 pb-4 space-y-3">
+      <template x-for="(ex, exIdx) in (session?.exercises||[])" :key="exIdx">
+        <div class="rounded-2xl p-3.5" style="background:var(--s1);border:1px solid var(--border)">
+          <div class="flex items-center justify-between mb-2">
+            <div class="font-semibold text-sm" style="color:var(--text)" x-text="ex.name"></div>
+            <div class="text-xs font-bold" style="font-family:var(--mono);color:var(--muted)" x-text="ex.sets.filter(s=>s.done).length + '/' + ex.sets.length"></div>
+          </div>
+          <div class="h-1.5 rounded-full overflow-hidden" style="background:var(--s2)">
+            <div class="h-full rounded-full transition-all" style="background:var(--accent)" :style="`width:${ex.sets.length>0?Math.round(ex.sets.filter(s=>s.done).length/ex.sets.length*100):0}%`"></div>
+          </div>
+        </div>
+      </template>
+    </div>
+    <!-- Terminer button -->
+    <div class="px-5 pb-6 pt-3 flex-shrink-0" style="border-top:1px solid var(--border)">
+      <button @click="showSessionOverview=false;confirmFinish=true" class="w-full py-4 rounded-2xl font-bold text-base active:scale-95 transition-all" style="background:#c0392b;color:#fff">Terminer la séance</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ OVERLAY : SESSION COMPLETE ═══════════════════════════ -->
+<div x-show="sessionRecap" x-cloak class="fixed inset-0 z-50 flex flex-col" style="background:#fff;overflow-y:auto">
+  <template x-if="sessionRecap">
+    <div class="flex flex-col min-h-screen">
+
+      <!-- ── Vue Célébration ── -->
+      <template x-if="seanceRecapView==='celebration'">
+        <div class="flex flex-col flex-1 px-5 pt-safe">
+          <!-- Top: close -->
+          <div class="flex justify-end pt-10 pb-2">
+            <button @click="sessionRecap=null;tab='historique'" class="w-9 h-9 rounded-full flex items-center justify-center" style="background:var(--s2);color:var(--muted)">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+          </div>
+          <!-- Big check -->
+          <div class="flex-1 flex flex-col items-center justify-center text-center py-8">
+            <div class="w-24 h-24 rounded-full flex items-center justify-center mb-6" style="background:oklch(0.74 0.19 48 / 0.12)">
+              <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color:var(--accent)"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+            </div>
+            <div class="text-3xl font-bold mb-2" style="color:var(--text)">Séance terminée !</div>
+            <div class="text-base mb-8" style="color:var(--muted)" x-text="sessionRecap?.programmeName || 'Séance libre'"></div>
+            <!-- 3 stats tiles -->
+            <div class="grid grid-cols-3 gap-3 w-full max-w-xs mb-6">
+              <div class="rounded-2xl p-3 text-center" style="background:var(--s1);border:1px solid var(--border)">
+                <div class="text-xl font-bold mb-0.5" style="font-family:var(--mono);color:var(--accent)" x-text="formatDuration(sessionRecap?.duration||0)"></div>
+                <div class="text-xs" style="color:var(--muted)">Durée</div>
+              </div>
+              <div class="rounded-2xl p-3 text-center" style="background:var(--s1);border:1px solid var(--border)">
+                <div class="text-xl font-bold mb-0.5" style="font-family:var(--mono);color:var(--accent)" x-text="sessionRecap?.completedSets||0"></div>
+                <div class="text-xs" style="color:var(--muted)">Séries</div>
+              </div>
+              <div class="rounded-2xl p-3 text-center" style="background:var(--s1);border:1px solid var(--border)">
+                <div class="text-xl font-bold mb-0.5" style="font-family:var(--mono);color:var(--accent)" x-text="sessionRecap?.totalVolume>=1000?((sessionRecap.totalVolume/1000).toFixed(1)+'t'):(Math.round(sessionRecap?.totalVolume||0)+'kg')"></div>
+                <div class="text-xs" style="color:var(--muted)">Volume</div>
+              </div>
+            </div>
+            <!-- PR banner -->
+            <template x-if="sessionRecap?.prs?.length > 0">
+              <div class="w-full max-w-xs rounded-2xl px-4 py-3 flex items-center gap-3 mb-2" style="background:oklch(0.74 0.19 48 / 0.1);border:1px solid oklch(0.74 0.19 48 / 0.3)">
+                <span class="text-xl">🏆</span>
+                <div class="flex-1 min-w-0">
+                  <div class="text-xs font-bold mb-0.5" style="color:var(--accent)" x-text="sessionRecap.prs.length + ' nouveau' + (sessionRecap.prs.length>1?'x':'') + ' record' + (sessionRecap.prs.length>1?'s':'') + ' !'"></div>
+                  <div class="text-xs truncate" style="color:var(--muted)" x-text="sessionRecap.prs.map(p=>p.exerciseName).join(', ')"></div>
+                </div>
+              </div>
+            </template>
+          </div>
+          <!-- CTAs -->
+          <div class="pb-10 space-y-3">
+            <button @click="seanceRecapView='detail'" class="w-full py-4 rounded-2xl font-bold active:scale-95 transition-all" style="background:var(--accent);color:#fff">Voir le récap détaillé</button>
+            <button @click="sessionRecap=null;tab='historique'" class="w-full py-3.5 rounded-2xl font-semibold active:scale-95 transition-all" style="background:var(--s1);color:var(--text);border:1px solid var(--border)">Fermer</button>
+          </div>
+        </div>
+      </template>
+
+      <!-- ── Vue Récap Détaillé ── -->
+      <template x-if="seanceRecapView==='detail'">
+        <div class="flex flex-col flex-1">
+          <!-- Header -->
+          <div class="flex items-center gap-3 px-5 pt-10 pb-4 flex-shrink-0" style="border-bottom:1px solid var(--border)">
+            <button @click="seanceRecapView='celebration'" class="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style="background:var(--s2);color:var(--muted)">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+            </button>
+            <div>
+              <div class="font-bold text-base" style="color:var(--text)">Récap de séance</div>
+              <div class="text-xs" style="color:var(--muted)" x-text="sessionRecap?.programmeName || 'Séance libre'"></div>
+            </div>
+          </div>
+          <div class="overflow-y-auto flex-1 px-5 pb-8 space-y-5 pt-5">
+            <!-- Stats tiles -->
+            <div class="grid grid-cols-3 gap-2">
+              <div class="rounded-2xl p-3 text-center" style="background:var(--s1);border:1px solid var(--border)">
+                <div class="text-lg font-bold mb-0.5" style="font-family:var(--mono);color:var(--accent)" x-text="formatDuration(sessionRecap?.duration||0)"></div>
+                <div class="text-xs" style="color:var(--muted)">Durée</div>
+              </div>
+              <div class="rounded-2xl p-3 text-center" style="background:var(--s1);border:1px solid var(--border)">
+                <div class="text-lg font-bold mb-0.5" style="font-family:var(--mono);color:var(--accent)" x-text="(sessionRecap?.completedSets||0)+'/'+(sessionRecap?.totalSets||0)"></div>
+                <div class="text-xs" style="color:var(--muted)">Séries</div>
+              </div>
+              <div class="rounded-2xl p-3 text-center" style="background:var(--s1);border:1px solid var(--border)">
+                <div class="text-lg font-bold mb-0.5" style="font-family:var(--mono);color:var(--accent)" x-text="sessionRecap?.totalVolume>=1000?((sessionRecap.totalVolume/1000).toFixed(1)+'t'):(Math.round(sessionRecap?.totalVolume||0)+'kg')"></div>
+                <div class="text-xs" style="color:var(--muted)">Volume</div>
+              </div>
+            </div>
+            <!-- Volume par groupe musculaire -->
+            <template x-if="recapVolumeByGroup.length > 0">
+              <div class="rounded-2xl p-4" style="background:var(--s1);border:1px solid var(--border)">
+                <div class="text-xs font-bold uppercase tracking-widest mb-3" style="color:var(--muted)">Volume par groupe</div>
+                <!-- Barre segmentée -->
+                <div class="flex rounded-full overflow-hidden h-3 mb-4 gap-px">
+                  <template x-for="(g, i) in recapVolumeByGroup" :key="g.name">
+                    <div class="h-full transition-all" :style="`width:${g.pct}%;background:${groupColor(g.name)};opacity:${0.5+i*0.15}`"></div>
+                  </template>
+                </div>
+                <!-- Légende -->
+                <div class="space-y-2">
+                  <template x-for="g in recapVolumeByGroup" :key="g.name">
+                    <div class="flex items-center gap-2">
+                      <div class="w-2.5 h-2.5 rounded-full flex-shrink-0" :style="`background:${groupColor(g.name)}`"></div>
+                      <div class="flex-1 text-xs" style="color:var(--text)" x-text="g.name"></div>
+                      <div class="text-xs font-bold" style="font-family:var(--mono);color:var(--muted)" x-text="Math.round(g.vol)+'kg'"></div>
+                      <div class="text-xs" style="color:var(--dim)" x-text="g.pct+'%'"></div>
+                    </div>
+                  </template>
+                </div>
+              </div>
+            </template>
+            <!-- PR cards -->
+            <template x-if="sessionRecap?.prs?.length > 0">
+              <div>
+                <div class="text-xs font-bold uppercase tracking-widest mb-2" style="color:var(--muted)">Records personnels 🏆</div>
+                <template x-for="pr in sessionRecap.prs" :key="pr.exerciseId">
+                  <div class="rounded-2xl px-4 py-3 flex items-center gap-3 mb-2" style="background:oklch(0.74 0.19 48 / 0.08);border:1px solid oklch(0.74 0.19 48 / 0.25)">
+                    <span class="text-lg">🏆</span>
+                    <div class="flex-1 min-w-0">
+                      <div class="font-semibold text-sm" style="color:var(--text)" x-text="pr.exerciseName"></div>
+                      <div class="text-xs" style="color:var(--muted)" x-text="pr.weightKg+'kg × '+pr.reps+' — 1RM estimé : '+pr.newMax+'kg'"></div>
+                    </div>
+                    <div class="text-xs font-bold px-2 py-0.5 rounded-full" style="background:var(--accent);color:#fff" x-text="'+'+pr.delta+'kg'"></div>
+                  </div>
+                </template>
+              </div>
+            </template>
+            <!-- Exercices détail -->
+            <div>
+              <div class="text-xs font-bold uppercase tracking-widest mb-2" style="color:var(--muted)">Exercices</div>
+              <template x-for="ex in (sessionRecap?.exercises||[])" :key="ex.id">
+                <div class="rounded-2xl p-4 mb-2" style="background:var(--s1);border:1px solid var(--border)">
+                  <div class="flex items-center justify-between mb-2.5">
+                    <div class="font-semibold text-sm" style="color:var(--text)" x-text="ex.name"></div>
+                    <span class="text-xs px-2 py-0.5 rounded-full" :style="groupBadgeStyle(ex.group)" x-text="ex.group"></span>
+                  </div>
+                  <div class="flex flex-wrap gap-1.5">
+                    <template x-for="(s, i) in ex.sets" :key="i">
+                      <span class="text-xs px-2.5 py-1 rounded-full font-medium"
+                        :style="s.done ? 'background:oklch(0.74 0.19 48 / 0.12);color:oklch(0.45 0.19 48)' : 'background:var(--s2);color:var(--dim);text-decoration:line-through'"
+                        x-text="`${s.weight}kg×${s.reps}`"></span>
+                    </template>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </div>
+          <!-- Close -->
+          <div class="px-5 pb-10 pt-3 flex-shrink-0" style="border-top:1px solid var(--border)">
+            <button @click="sessionRecap=null;tab='historique'" class="w-full py-4 rounded-2xl font-bold active:scale-95 transition-all" style="background:var(--accent);color:#fff">Fermer</button>
+          </div>
+        </div>
+      </template>
+
+    </div>
+  </template>
+</div>
+
+<!-- ══ OVERLAY : PROGRAMME DETAIL ═══════════════════════════ -->
+<div x-show="programmeDetail" x-cloak class="fixed inset-0 z-50 flex flex-col" style="background:#fff;overflow-y:auto">
+  <template x-if="programmeDetail">
+    <div class="flex flex-col min-h-screen">
+      <!-- Hero -->
+      <div class="relative flex-shrink-0 px-5 pt-12 pb-8" :style="`background:${programmeDetail.color||'var(--accent)'};color:#fff`">
+        <button @click="programmeDetail=null" class="absolute top-10 right-5 w-9 h-9 rounded-full flex items-center justify-center" style="background:rgba(0,0,0,0.2)">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+        <div class="text-xs font-bold tracking-widest uppercase mb-2 opacity-75" x-text="programmeDetail.category || 'Programme'"></div>
+        <div class="text-2xl font-bold mb-4 leading-tight" x-text="programmeDetail.name"></div>
+        <!-- Métriques -->
+        <div class="grid grid-cols-3 gap-2">
+          <div class="rounded-xl py-2 text-center" style="background:rgba(0,0,0,0.18)">
+            <div class="text-lg font-bold" style="font-family:var(--mono)" x-text="programmeDetail.weekSessions ? Object.values(programmeDetail.weekSessions).filter(Boolean).length : (programmeDetail.exercises||[]).length"></div>
+            <div class="text-xs opacity-75" x-text="programmeDetail.weekSessions ? 'séances/sem' : 'exercices'"></div>
+          </div>
+          <div class="rounded-xl py-2 text-center" style="background:rgba(0,0,0,0.18)">
+            <div class="text-lg font-bold" style="font-family:var(--mono)" x-text="programmeDetail.durationWeeks ? programmeDetail.durationWeeks+'sem' : '—'"></div>
+            <div class="text-xs opacity-75">durée</div>
+          </div>
+          <div class="rounded-xl py-2 text-center" style="background:rgba(0,0,0,0.18)">
+            <div class="text-lg font-bold" style="font-family:var(--mono)" x-text="programmeDetail.weekSessions ? Object.values(programmeDetail.weekSessions).filter(Boolean).reduce((s,d)=>s+(d.exercises?.length||0),0) : (programmeDetail.exercises||[]).length"></div>
+            <div class="text-xs opacity-75">exercices</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contenu -->
+      <div class="flex-1 px-5 py-5 space-y-5 pb-32">
+        <!-- Rythme hebdomadaire (wizard) -->
+        <template x-if="programmeDetail.weekSessions">
+          <div>
+            <div class="text-xs font-bold uppercase tracking-widest mb-3" style="color:var(--muted)">Rythme hebdomadaire</div>
+            <div class="flex gap-1.5">
+              <template x-for="d in wizardDays" :key="d.key">
+                <div class="flex-1 flex flex-col items-center gap-1">
+                  <div class="w-full rounded-xl flex items-center justify-center font-bold text-xs transition-all" style="aspect-ratio:1" :style="programmeDetail.weekSessions[d.key]?`background:${programmeDetail.color||'var(--accent)'};color:#fff`:'background:var(--s2);color:var(--dim)'" x-text="d.label.slice(0,1)"></div>
+                  <div class="text-xs" style="color:var(--dim)" x-text="d.label.slice(0,3)"></div>
+                </div>
+              </template>
+            </div>
+          </div>
+        </template>
+        <!-- Séances (wizard) -->
+        <template x-if="programmeDetail.weekSessions">
+          <div>
+            <div class="text-xs font-bold uppercase tracking-widest mb-3" style="color:var(--muted)">Séances</div>
+            <template x-for="ds in progDaySessions(programmeDetail)" :key="ds.key">
+              <div class="rounded-2xl mb-3 overflow-hidden" style="background:var(--s1);border:1px solid var(--border)">
+                <div class="flex items-center gap-3 px-4 py-3.5" style="border-bottom:1px solid var(--border)">
+                  <div class="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold flex-shrink-0" :style="`background:${programmeDetail.color||'var(--accent)'}20;color:${programmeDetail.color||'var(--accent)'}`" x-text="ds.label.slice(0,3)"></div>
+                  <div>
+                    <div class="font-semibold text-sm" style="color:var(--text)" x-text="ds.session.name"></div>
+                    <div class="text-xs" style="color:var(--muted)" x-text="ds.session.exercises.length+' exercices'"></div>
+                  </div>
+                </div>
+                <div class="px-4 py-3 space-y-1.5">
+                  <template x-for="ex in ds.session.exercises" :key="ex.id">
+                    <div class="flex items-center justify-between text-xs">
+                      <span style="color:var(--text)" x-text="ex.name"></span>
+                      <span style="color:var(--muted);font-family:var(--mono)" x-text="ex.sets+'×'+ex.reps+' — '+ex.weight+'kg'"></span>
+                    </div>
+                  </template>
+                </div>
+              </div>
+            </template>
+          </div>
+        </template>
+        <!-- Exercices (programme classique) -->
+        <template x-if="!programmeDetail.weekSessions">
+          <div>
+            <div class="text-xs font-bold uppercase tracking-widest mb-3" style="color:var(--muted)">Exercices</div>
+            <template x-for="ex in (programmeDetail.exercises||[])" :key="ex.id">
+              <div class="flex items-center justify-between px-4 py-3 rounded-2xl mb-2" style="background:var(--s1);border:1px solid var(--border)">
+                <div>
+                  <div class="font-semibold text-sm" style="color:var(--text)" x-text="ex.name"></div>
+                  <span class="text-xs px-2 py-0.5 rounded-full mt-1 inline-block" :style="groupBadgeStyle(ex.group)" x-text="ex.group"></span>
+                </div>
+                <div class="text-right">
+                  <div class="text-sm font-bold" style="font-family:var(--mono);color:var(--text)" x-text="ex.sets+'×'+ex.reps"></div>
+                  <div class="text-xs" style="color:var(--muted)" x-text="ex.weight+'kg'"></div>
+                </div>
+              </div>
+            </template>
+          </div>
+        </template>
+      </div>
+
+      <!-- Sticky CTAs -->
+      <div class="fixed bottom-0 left-0 right-0 px-5 pb-8 pt-4 flex gap-3" style="background:rgba(255,255,255,0.97);border-top:1px solid var(--border);backdrop-filter:blur(10px)">
+        <button @click="editProgramme(programmeDetail);programmeDetail=null" class="flex-1 py-3.5 rounded-2xl font-semibold text-sm active:scale-95 transition-all" style="background:var(--s1);color:var(--text);border:1px solid var(--border)">Personnaliser</button>
+        <template x-if="!programmeDetail.weekSessions">
+          <button @click="startSession(programmeDetail);programmeDetail=null" class="flex-1 py-3.5 rounded-2xl font-bold text-sm active:scale-95 transition-all" style="background:var(--accent);color:#fff">Utiliser ce programme →</button>
+        </template>
+        <template x-if="programmeDetail.weekSessions">
+          <button @click="showSessionPicker=true;programmeDetail=null" class="flex-1 py-3.5 rounded-2xl font-bold text-sm active:scale-95 transition-all" style="background:var(--accent);color:#fff">Utiliser ce programme →</button>
+        </template>
+      </div>
+    </div>
+  </template>
+</div>
+
 <!-- ══ SCRIPT ══════════════════════════════════════════════ -->
 <script>
 function gymApp() {
@@ -1514,6 +1828,8 @@ function gymApp() {
     wizardStep: 0, wizardProg: null, wizardDay: null, wizardDaySession: null,
     wizardColors: ['oklch(0.74 0.19 48)','oklch(0.88 0.20 130)','oklch(0.74 0.17 245)','oklch(0.74 0.20 8)','oklch(0.78 0.16 75)'],
     wizardDays: [{key:'mon',label:'Lundi'},{key:'tue',label:'Mardi'},{key:'wed',label:'Mercredi'},{key:'thu',label:'Jeudi'},{key:'fri',label:'Vendredi'},{key:'sat',label:'Samedi'},{key:'sun',label:'Dimanche'}],
+    prCelebration: null, sessionPRs: [], sessionRecap: null, seanceRecapView: 'celebration',
+    showSessionOverview: false, programmeDetail: null,
 
     // FAQ
     showFAQ: false,
@@ -1800,18 +2116,54 @@ function gymApp() {
         });
       }
       this.session={id:Date.now().toString(),date:new Date().toISOString(),programmeName,exercises};
-      this.sessionSeconds=0;
+      this.sessionSeconds=0; this.sessionPRs=[];
       this._sessionTimer=setInterval(()=>this.sessionSeconds++,1000);
       this.tab='seance';
     },
     async finishSession(){
       clearInterval(this._sessionTimer); clearInterval(this._restInterval);
-      this.restTimer=null;
+      this.restTimer=null; this.showSessionOverview=false;
       this.session.duration=this.sessionSeconds;
       const saved=JSON.parse(JSON.stringify(this.session));
-      try{await this.api('POST','/api/sessions',saved);this.sessions.unshift(saved);this.showToast('Séance sauvegardée ✓');}
+      let completedSets=0,totalSets=0,totalVolume=0;
+      saved.exercises.forEach(ex=>ex.sets.forEach(s=>{totalSets++;if(s.done){completedSets++;totalVolume+=s.weight*s.reps;}}));
+      this.sessionRecap={...saved,completedSets,totalSets,totalVolume,prs:[...this.sessionPRs]};
+      this.sessionPRs=[];
+      this.seanceRecapView='celebration';
+      try{await this.api('POST','/api/sessions',saved);this.sessions.unshift(saved);}
       catch(e){this.showToast('Erreur lors de la sauvegarde',true);}
-      this.session=null;this.sessionSeconds=0;this.tab='historique';
+      this.session=null; this.sessionSeconds=0;
+    },
+    compute1RM(weight,reps){return weight*(1+reps/30);},
+    maxHistorical1RM(exerciseId){
+      let max=0;
+      this.sessions.forEach(s=>{
+        const ex=s.exercises?.find(e=>e.id===exerciseId);
+        if(ex)ex.sets?.forEach(set=>{if(set.done&&set.weight>0&&set.reps>0){const rm=this.compute1RM(set.weight,set.reps);if(rm>max)max=rm;}});
+      });
+      return max;
+    },
+    validateSet(exercise,set){
+      if(set.done){set.done=false;return;}
+      set.done=true;
+      this.startRestTimer();
+      if(set.weight>0&&set.reps>0){
+        const new1RM=this.compute1RM(set.weight,set.reps);
+        const old1RM=this.maxHistorical1RM(exercise.id);
+        if(new1RM>old1RM&&!this.sessionPRs.find(p=>p.exerciseId===exercise.id)){
+          const delta=(new1RM-old1RM).toFixed(1);
+          this.prCelebration={exerciseName:exercise.name,exerciseId:exercise.id,oldMax:old1RM>0?old1RM.toFixed(1):null,newMax:new1RM.toFixed(1),delta,weightKg:set.weight,reps:set.reps};
+          this.sessionPRs.push({...this.prCelebration});
+        }
+      }
+    },
+    dismissPR(){this.prCelebration=null;},
+    get recapVolumeByGroup(){
+      if(!this.sessionRecap)return[];
+      const groups={};
+      this.sessionRecap.exercises.forEach(ex=>ex.sets.forEach(s=>{if(s.done&&s.weight>0&&s.reps>0){groups[ex.group]=(groups[ex.group]||0)+s.weight*s.reps;}}));
+      const total=Object.values(groups).reduce((acc,v)=>acc+v,0);
+      return Object.entries(groups).map(([name,vol])=>({name,vol,pct:total>0?Math.round(vol/total*100):0})).sort((a,b)=>b.vol-a.vol);
     },
     startRestTimer(){
       clearInterval(this._restInterval);
@@ -1957,7 +2309,8 @@ function gymApp() {
           sets:Array.from({length:ex.sets},()=>({reps:ex.reps,weight:ex.weight,done:false}))};
       });
       this.session={id:Date.now().toString(),date:new Date().toISOString(),programmeName:progName,exercises};
-      this.sessionSeconds=0;this._sessionTimer=setInterval(()=>this.sessionSeconds++,1000);
+      this.sessionSeconds=0; this.sessionPRs=[];
+      this._sessionTimer=setInterval(()=>this.sessionSeconds++,1000);
       this.tab='seance';this.showSessionPicker=false;
     },
     progDaySessions(prog){
